@@ -1,5 +1,7 @@
 package com.br.login_jwt.config;
 
+import com.br.login_jwt.security.CustomAccessDeniedHandler;
+import com.br.login_jwt.security.JwtAuthenticationEntryPoint;
 import com.br.login_jwt.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,9 +18,15 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class    SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
+                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+                          CustomAccessDeniedHandler customAccessDeniedHandler) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
     }
 
     @Bean
@@ -41,6 +49,12 @@ public class    SecurityConfig {
                         .hasRole("ADMIN")
 
                         .anyRequest().authenticated()
+                )
+                // Diferencia 401 (não autenticado: sem token/token inválido) de 403
+                // (autenticado, mas sem a role necessária), cada um com uma mensagem clara.
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 .addFilterBefore(jwtAuthenticationFilter,
                         org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);

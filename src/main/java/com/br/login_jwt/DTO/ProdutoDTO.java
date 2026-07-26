@@ -10,4 +10,5 @@ public class ProdutoDTO {
     private String numSerie;
     private Double preco;
     private String dataCadastro;
+    private String fabricantes;
 }

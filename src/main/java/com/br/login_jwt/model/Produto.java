@@ -18,5 +18,8 @@ public class Produto {
     private String categoria;
     private String numSerie;
     private Double preco;
+    @ManyToOne
+    @JoinColumn(name = "fabricante_id")
+    private Fabricantes fabricantes;
     private LocalDateTime dataCadastro;
 }

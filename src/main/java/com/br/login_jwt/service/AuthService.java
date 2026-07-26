@@ -3,9 +3,12 @@ package com.br.login_jwt.service;
 import com.br.login_jwt.DTO.AuthResponseDTO;
 import com.br.login_jwt.DTO.LoginRequestDTO;
 import com.br.login_jwt.DTO.RegisterRequestDTO;
+import com.br.login_jwt.exception.InvalidCredentialsException;
+import com.br.login_jwt.exception.InvalidTokenException;
 import com.br.login_jwt.model.User;
 import com.br.login_jwt.repository.UserRepository;
 import com.br.login_jwt.security.JwtService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +48,10 @@ public class AuthService {
 
     public AuthResponseDTO login(LoginRequestDTO request) {
         User user = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + request.getUsername()));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Credenciais inválidas");
+            throw new InvalidCredentialsException("Usuário ou senha inválidos.");
         }
 
         String access = jwtService.generateAccessToken(user.getUsername());
@@ -59,7 +62,7 @@ public class AuthService {
 
     public AuthResponseDTO refresh(String refreshToken) {
         if (!jwtService.validateToken(refreshToken)) {
-            throw new RuntimeException("Refresh token inválido");
+            throw new InvalidTokenException("Refresh token inválido ou expirado.");
         }
 
         String username = jwtService.extractUsername(refreshToken);
