@@ -1,0 +1,358 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-08-09T21:15:00.000-03:00",
+  "__export_source": "insomnia.desktop.app:v0.1.0",
+  "resources": [
+    {
+      "_id": "wrk_login_jwt",
+      "parentId": null,
+      "name": "Login JWT API",
+      "type": "Workspace",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_login_jwt",
+      "parentId": "wrk_login_jwt",
+      "name": "Base Environment",
+      "type": "Environment",
+      "data": {
+        "base_url": "http://localhost:8080",
+        "token": ""
+      },
+      "dataPropertyOrder": {
+        "&": ["base_url", "token"]
+      },
+      "color": "#00ff00",
+      "isPrivate": false,
+      "metaSortKey": 0
+    },
+    {
+      "_id": "fld_auth",
+      "parentId": "wrk_login_jwt",
+      "name": "Auth",
+      "type": "RequestGroup",
+      "metaSortKey": 0,
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "fld_categorias",
+      "parentId": "wrk_login_jwt",
+      "name": "Categorias",
+      "type": "RequestGroup",
+      "metaSortKey": 1,
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "fld_produtos",
+      "parentId": "wrk_login_jwt",
+      "name": "Produtos",
+      "type": "RequestGroup",
+      "metaSortKey": 2,
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "fld_fabricantes",
+      "parentId": "wrk_login_jwt",
+      "name": "Fabricantes",
+      "type": "RequestGroup",
+      "metaSortKey": 3,
+      "environment": {},
+      "environmentPropertyOrder": null
+    },
+    {
+      "_id": "req_register",
+      "parentId": "fld_auth",
+      "name": "Register",
+      "url": "{{ base_url }}/auth/register",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_login",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "url": "{{ base_url }}/auth/login",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_refresh",
+      "parentId": "fld_auth",
+      "name": "Refresh Token",
+      "url": "{{ base_url }}/auth/refresh",
+      "method": "POST",
+      "body": {
+        "mimeType": "text/plain",
+        "text": "your-refresh-token-here"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "text/plain"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_categorias_list",
+      "parentId": "fld_categorias",
+      "name": "Listar Categorias",
+      "url": "{{ base_url }}/categorias",
+      "method": "GET",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_categorias_create",
+      "parentId": "fld_categorias",
+      "name": "Criar Categoria",
+      "url": "{{ base_url }}/categorias",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Eletrônicos\",\n  \"descricao\": \"Produtos eletrônicos em geral\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_categorias_update",
+      "parentId": "fld_categorias",
+      "name": "Atualizar Categoria",
+      "url": "{{ base_url }}/categorias/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Eletrônicos\",\n  \"descricao\": \"Atualizado\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_categorias_delete",
+      "parentId": "fld_categorias",
+      "name": "Deletar Categoria",
+      "url": "{{ base_url }}/categorias/1",
+      "method": "DELETE",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_produtos_list",
+      "parentId": "fld_produtos",
+      "name": "Listar Produtos",
+      "url": "{{ base_url }}/produtos",
+      "method": "GET",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_produtos_create",
+      "parentId": "fld_produtos",
+      "name": "Criar Produto",
+      "url": "{{ base_url }}/produtos",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Notebook Dell\",\n  \"categoria\": \"Eletrônicos\",\n  \"numSerie\": \"SN123456\",\n  \"preco\": 4500.00,\n  \"fabricantes\": {\n    \"id\": 1\n  },\n  \"dataCadastro\": \"2026-08-09T21:00:00\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_produtos_update",
+      "parentId": "fld_produtos",
+      "name": "Atualizar Produto",
+      "url": "{{ base_url }}/produtos/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Notebook Dell Atualizado\",\n  \"categoria\": \"Eletrônicos\",\n  \"numSerie\": \"SN123456\",\n  \"preco\": 4200.00,\n  \"fabricantes\": {\n    \"id\": 1\n  },\n  \"dataCadastro\": \"2026-08-09T21:00:00\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_produtos_delete",
+      "parentId": "fld_produtos",
+      "name": "Deletar Produto",
+      "url": "{{ base_url }}/produtos/1",
+      "method": "DELETE",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 3
+    },
+    {
+      "_id": "req_fabricantes_list",
+      "parentId": "fld_fabricantes",
+      "name": "Listar Fabricantes",
+      "url": "{{ base_url }}/fabricantes",
+      "method": "GET",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 0
+    },
+    {
+      "_id": "req_fabricantes_create",
+      "parentId": "fld_fabricantes",
+      "name": "Criar Fabricante",
+      "url": "{{ base_url }}/fabricantes",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Dell\",\n  \"descricao\": \"Fabricante de computadores\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 1
+    },
+    {
+      "_id": "req_fabricantes_update",
+      "parentId": "fld_fabricantes",
+      "name": "Atualizar Fabricante",
+      "url": "{{ base_url }}/fabricantes/1",
+      "method": "PUT",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"nome\": \"Dell Brasil\",\n  \"descricao\": \"Atualizado\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 2
+    },
+    {
+      "_id": "req_fabricantes_delete",
+      "parentId": "fld_fabricantes",
+      "name": "Deletar Fabricante",
+      "url": "{{ base_url }}/fabricantes/1",
+      "method": "DELETE",
+      "body": {},
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ token }}"
+        }
+      ],
+      "type": "Request",
+      "metaSortKey": 3
+    }
+  ]
+}
