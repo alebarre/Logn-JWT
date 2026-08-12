@@ -1,6 +1,6 @@
 # Login JWT API
 
-API REST desenvolvida em **Spring Boot 4 + Java 25**, utilizando **JWT**, **Spring Security**, **JPA**, **PostgreSQL**, **Swagger/OpenAPI** e **Docker**.
+API REST desenvolvida em **Spring Boot 4.1.0 + Java 25**, utilizando **JWT**, **Spring Security**, **JPA**, **PostgreSQL**, **Swagger/OpenAPI** e **Docker**.
 
 A aplicação implementa:
 - Autenticação com JWT (access + refresh token)
@@ -13,7 +13,7 @@ A aplicação implementa:
 ## Tecnologias
 
 - Java 25
-- Spring Boot 4
+- Spring Boot 4.1.0
 - Spring Security
 - JWT (jjwt 0.12.6)
 - Spring Data JPA
@@ -117,13 +117,15 @@ Você pode rodar de duas formas:
 
 **Opção A — usando o Maven Wrapper (recomendado em desenvolvimento):**
 ```bash
-./mvnw spring-boot:run
+JAVA_HOME=/caminho/para/jdk-25 ./mvnw spring-boot:run
 ```
 
 **Opção B — executando o jar gerado no build:**
 ```bash
-java -jar target/login-jwt-0.0.1-SNAPSHOT.jar
+/caminho/para/jdk-25/bin/java -jar target/login-jwt-0.0.1-SNAPSHOT.jar
 ```
+
+> Substitua `/caminho/para/jdk-25` pelo caminho do JDK 25 instalado (ex.: `/home/$USER/.jdks/openjdk-25.0.2`). O projeto foi compilado para Java 25 e **não roda em versões anteriores do JRE**.
 
 Quando aparecer a mensagem `Started LoginJwtApplication` no terminal, a API está no ar em:
 
@@ -235,6 +237,8 @@ Lá é possível ver e testar todos os endpoints (autenticação, produtos, cate
 
 - **`docker compose up` falha ou porta em uso**: verifique se já existe algo rodando na porta `5433` (`sudo lsof -i :5433` no Linux/macOS) ou altere `POSTGRES_PORT` no `.env`.
 - **Aplicação não conecta ao banco**: confira se o container está de pé (`docker ps`) e se `SPRING_DATASOURCE_URL` no `.env` aponta para a mesma porta configurada em `POSTGRES_PORT`.
+- **`UnsupportedClassVersionError` / "class file version 69.0"**: o jar foi compilado com Java 25 mas está sendo executado com uma JVM mais antiga. Certifique-se de usar JDK 25 (veja passo 5).
+- **`release version 25 not supported`**: o Maven está rodando com JDK 21 ou inferior. Defina `JAVA_HOME` para o JDK 25 antes de chamar `./mvnw`.
 - **`./mvnw: Permission denied`**: rode `chmod +x mvnw`.
 - **Porta 8080 já em uso**: pare o processo que está usando a porta ou rode com `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081`.
 
