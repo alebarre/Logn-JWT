@@ -2,6 +2,7 @@ package com.br.login_jwt.controller;
 
 import com.br.login_jwt.model.Produto;
 import com.br.login_jwt.service.ProdutoService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +23,12 @@ public class ProdutoController {
     }
 
     @PostMapping
-    public Produto criar(@RequestBody Produto produto) {
+    public Produto criar(@Valid @RequestBody Produto produto) {
         return service.criar(produto);
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id, @RequestBody Produto produto) {
+    public Produto atualizar(@PathVariable Long id, @Valid @RequestBody Produto produto) {
         return service.atualizar(id, produto);
     }
 

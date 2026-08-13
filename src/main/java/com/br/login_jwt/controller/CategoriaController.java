@@ -2,6 +2,7 @@ package com.br.login_jwt.controller;
 
 import com.br.login_jwt.model.Categoria;
 import com.br.login_jwt.service.CategoriaService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +23,12 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public Categoria criar(@RequestBody Categoria categoria) {
+    public Categoria criar(@Valid @RequestBody Categoria categoria) {
         return service.criar(categoria);
     }
 
     @PutMapping("/{id}")
-    public Categoria atualizar(@PathVariable Long id, @RequestBody Categoria categoria) {
+    public Categoria atualizar(@PathVariable Long id, @Valid @RequestBody Categoria categoria) {
         return service.atualizar(id, categoria);
     }
 

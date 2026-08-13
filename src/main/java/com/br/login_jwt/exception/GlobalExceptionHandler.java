@@ -6,9 +6,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Tratamento centralizado de exceções para retornar respostas de erro claras e consistentes,
@@ -39,6 +45,35 @@ public class GlobalExceptionHandler {
                                                                HttpServletRequest request) {
         log.warn("Usuário não encontrado em {}: {}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(RecursoNaoEncontradoException.class)
+    public ResponseEntity<ApiErrorDTO> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex,
+                                                                   HttpServletRequest request) {
+        log.warn("Recurso referenciado não encontrado em {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorDTO> handleValidation(MethodArgumentNotValidException ex,
+                                                          HttpServletRequest request) {
+        Map<String, String> errors = new LinkedHashMap<>();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        log.warn("Falha de validação em {}: {}", request.getRequestURI(), errors);
+        ApiErrorDTO body = new ApiErrorDTO(HttpStatus.BAD_REQUEST.value(), HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                "Erro de validação nos campos enviados.", request.getRequestURI(), errors);
+        return ResponseEntity.badRequest().body(body);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorDTO> handleMalformedJson(HttpMessageNotReadableException ex,
+                                                             HttpServletRequest request) {
+        log.warn("Corpo da requisição inválido em {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST,
+                "Corpo da requisição inválido. Verifique se os campos foram enviados no formato esperado.",
+                request);
     }
 
     @ExceptionHandler(Exception.class)
