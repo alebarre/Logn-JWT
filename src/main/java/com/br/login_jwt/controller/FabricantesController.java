@@ -1,5 +1,7 @@
 package com.br.login_jwt.controller;
 
+import com.br.login_jwt.DTO.FabricantesDTO;
+import com.br.login_jwt.DTO.FabricantesRequestDTO;
 import com.br.login_jwt.model.Fabricantes;
 import com.br.login_jwt.service.FabricantesService;
 import jakarta.validation.Valid;
@@ -18,22 +20,29 @@ public class FabricantesController {
     }
 
     @GetMapping
-    public List<Fabricantes> listar() {
-        return service.listar();
+    public List<FabricantesDTO> listar() {
+        return service.listar().stream().map(FabricantesDTO::from).toList();
     }
 
     @PostMapping
-    public Fabricantes criar(@Valid @RequestBody Fabricantes fabricante) {
-        return service.criar(fabricante);
+    public FabricantesDTO criar(@Valid @RequestBody FabricantesRequestDTO request) {
+        return FabricantesDTO.from(service.criar(toEntity(request)));
     }
 
     @PutMapping("/{id}")
-    public Fabricantes atualizar(@PathVariable Long id, @Valid @RequestBody Fabricantes fabricante) {
-        return service.atualizar(id, fabricante);
+    public FabricantesDTO atualizar(@PathVariable Long id, @Valid @RequestBody FabricantesRequestDTO request) {
+        return FabricantesDTO.from(service.atualizar(id, toEntity(request)));
     }
 
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
         service.deletar(id);
+    }
+
+    private Fabricantes toEntity(FabricantesRequestDTO request) {
+        Fabricantes fabricante = new Fabricantes();
+        fabricante.setNome(request.getNome());
+        fabricante.setDescricao(request.getDescricao());
+        return fabricante;
     }
 }

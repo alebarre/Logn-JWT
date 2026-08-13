@@ -1,5 +1,6 @@
 package com.br.login_jwt.DTO;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -11,9 +12,10 @@ import lombok.Setter;
 @Setter
 public class LoginRequestDTO {
 
+    @NotBlank(message = "Usuário é obrigatório")
     private String username;
-    private String password;
 
-    // getters e setters
+    @NotBlank(message = "Senha é obrigatória")
+    private String password;
 }
 

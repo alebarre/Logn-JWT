@@ -1,5 +1,9 @@
 package com.br.login_jwt.controller;
 
+import com.br.login_jwt.DTO.ProdutoDTO;
+import com.br.login_jwt.DTO.ProdutoRequestDTO;
+import com.br.login_jwt.model.Categoria;
+import com.br.login_jwt.model.Fabricantes;
 import com.br.login_jwt.model.Produto;
 import com.br.login_jwt.service.ProdutoService;
 import jakarta.validation.Valid;
@@ -18,22 +22,39 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public List<Produto> listar() {
-        return service.listar();
+    public List<ProdutoDTO> listar() {
+        return service.listar().stream().map(ProdutoDTO::from).toList();
     }
 
     @PostMapping
-    public Produto criar(@Valid @RequestBody Produto produto) {
-        return service.criar(produto);
+    public ProdutoDTO criar(@Valid @RequestBody ProdutoRequestDTO request) {
+        return ProdutoDTO.from(service.criar(toEntity(request)));
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id, @Valid @RequestBody Produto produto) {
-        return service.atualizar(id, produto);
+    public ProdutoDTO atualizar(@PathVariable Long id, @Valid @RequestBody ProdutoRequestDTO request) {
+        return ProdutoDTO.from(service.atualizar(id, toEntity(request)));
     }
 
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
         service.deletar(id);
+    }
+
+    private Produto toEntity(ProdutoRequestDTO request) {
+        Produto produto = new Produto();
+        produto.setNome(request.getNome());
+        produto.setNumSerie(request.getNumSerie());
+        produto.setPreco(request.getPreco());
+
+        Categoria categoria = new Categoria();
+        categoria.setId(request.getCategoriaId());
+        produto.setCategoria(categoria);
+
+        Fabricantes fabricante = new Fabricantes();
+        fabricante.setId(request.getFabricanteId());
+        produto.setFabricantes(fabricante);
+
+        return produto;
     }
 }

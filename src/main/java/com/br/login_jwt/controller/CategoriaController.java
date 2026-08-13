@@ -1,5 +1,7 @@
 package com.br.login_jwt.controller;
 
+import com.br.login_jwt.DTO.CategoriaDTO;
+import com.br.login_jwt.DTO.CategoriaRequestDTO;
 import com.br.login_jwt.model.Categoria;
 import com.br.login_jwt.service.CategoriaService;
 import jakarta.validation.Valid;
@@ -18,22 +20,29 @@ public class CategoriaController {
     }
 
     @GetMapping
-    public List<Categoria> listar() {
-        return service.listar();
+    public List<CategoriaDTO> listar() {
+        return service.listar().stream().map(CategoriaDTO::from).toList();
     }
 
     @PostMapping
-    public Categoria criar(@Valid @RequestBody Categoria categoria) {
-        return service.criar(categoria);
+    public CategoriaDTO criar(@Valid @RequestBody CategoriaRequestDTO request) {
+        return CategoriaDTO.from(service.criar(toEntity(request)));
     }
 
     @PutMapping("/{id}")
-    public Categoria atualizar(@PathVariable Long id, @Valid @RequestBody Categoria categoria) {
-        return service.atualizar(id, categoria);
+    public CategoriaDTO atualizar(@PathVariable Long id, @Valid @RequestBody CategoriaRequestDTO request) {
+        return CategoriaDTO.from(service.atualizar(id, toEntity(request)));
     }
 
     @DeleteMapping("/{id}")
     public void deletar(@PathVariable Long id) {
         service.deletar(id);
+    }
+
+    private Categoria toEntity(CategoriaRequestDTO request) {
+        Categoria categoria = new Categoria();
+        categoria.setNome(request.getNome());
+        categoria.setDescricao(request.getDescricao());
+        return categoria;
     }
 }
