@@ -17,6 +17,7 @@ A aplicação implementa:
 - Spring Security
 - JWT (jjwt 0.12.6)
 - Spring Data JPA
+- Bean Validation (Jakarta Validation / `spring-boot-starter-validation`)
 - PostgreSQL
 - Docker & Docker Compose
 - Swagger / OpenAPI
@@ -204,12 +205,58 @@ Quando o access token expirar, gere um novo par de tokens com:
 ```bash
 curl -X POST http://localhost:8080/auth/refresh \
   -H "Content-Type: application/json" \
-  -d '"<refreshToken>"'
+  -d '{"refreshToken": "<refreshToken>"}'
 ```
 
 ---
 
-## 8. Documentação interativa (Swagger)
+## 8. Exemplo: cadastrando categoria, fabricante e produto
+
+Categoria e fabricante são entidades próprias (tabelas `categorias` e `fabricantes`), e o produto se relaciona com ambas por chave estrangeira. Por isso, ao criar um produto, a categoria e o fabricante referenciados **precisam já existir** — a API responde `404` se o `id` informado não for encontrado.
+
+```bash
+# 1. Criar uma categoria
+curl -X POST http://localhost:8080/categorias \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"nome": "Notebooks", "descricao": "Computadores portáteis"}'
+
+# 2. Criar um fabricante
+curl -X POST http://localhost:8080/fabricantes \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"nome": "Dell", "descricao": "Fabricante de notebooks e desktops"}'
+
+# 3. Criar o produto, referenciando os ids retornados acima
+curl -X POST http://localhost:8080/produtos \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{
+        "nome": "Notebook Dell Inspiron 15",
+        "categoriaId": 1,
+        "numSerie": "DL-INS15-0001",
+        "preco": 4299.90,
+        "fabricanteId": 1
+      }'
+```
+
+A resposta traz a categoria e o fabricante já resolvidos (objeto completo, não só o id):
+
+```json
+{
+  "id": 1,
+  "nome": "Notebook Dell Inspiron 15",
+  "categoria": { "id": 1, "nome": "Notebooks", "descricao": "Computadores portáteis" },
+  "numSerie": "DL-INS15-0001",
+  "preco": 4299.9,
+  "fabricantes": { "id": 1, "nome": "Dell", "descricao": "Fabricante de notebooks e desktops" },
+  "dataCadastro": "2026-08-12T22:10:00"
+}
+```
+
+---
+
+## 9. Documentação interativa (Swagger)
 
 Com a aplicação rodando, acesse no navegador:
 
@@ -233,6 +280,36 @@ Lá é possível ver e testar todos os endpoints (autenticação, produtos, cate
 
 ---
 
+## Validação e tratamento de erros
+
+Todas as respostas de erro seguem o mesmo formato JSON, pensado para ser consumido diretamente por um frontend:
+
+```json
+{
+  "timestamp": "2026-08-12T21:54:46Z",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Erro de validação nos campos enviados.",
+  "path": "/produtos",
+  "errors": {
+    "nome": "Nome é obrigatório",
+    "preco": "Preço deve ser um valor numérico maior que zero"
+  }
+}
+```
+
+O campo `errors` (mapa campo → mensagem) só aparece em erros de validação de formulário, permitindo destacar cada campo individualmente no frontend. Os demais erros trazem apenas `message`.
+
+| Situação | Status |
+|---|---|
+| Campo obrigatório vazio, fora do tamanho permitido ou em formato inválido (ex.: nome só com números, preço negativo) | `400` |
+| Corpo da requisição mal formado (JSON inválido) | `400` |
+| `categoriaId` ou `fabricanteId` não encontrado | `404` |
+| Credenciais inválidas / token inválido ou expirado | `401` |
+| Usuário sem permissão para a ação | `403` |
+
+---
+
 ## Solução de problemas comuns
 
 - **`docker compose up` falha ou porta em uso**: verifique se já existe algo rodando na porta `5433` (`sudo lsof -i :5433` no Linux/macOS) ou altere `POSTGRES_PORT` no `.env`.
@@ -250,7 +327,7 @@ Lá é possível ver e testar todos os endpoints (autenticação, produtos, cate
 src/main/java/com/br/login_jwt/
 ├── config/       # Configuração de segurança e Swagger
 ├── controller/   # Endpoints REST (Auth, Produto, Categoria, Fabricantes)
-├── DTO/          # Objetos de transferência de dados
+├── DTO/          # Objetos de transferência de dados (Request/Response separados dos models JPA)
 ├── exception/    # Tratamento global de erros
 ├── model/        # Entidades JPA (User, Produto, Categoria, Fabricantes)
 ├── repository/   # Repositórios Spring Data JPA
