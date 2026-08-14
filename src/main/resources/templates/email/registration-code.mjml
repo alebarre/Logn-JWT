@@ -1,0 +1,79 @@
+<mjml>
+  <mj-head>
+    <mj-title>Confirme seu cadastro</mj-title>
+    <mj-preview>Seu código de verificação para concluir o cadastro</mj-preview>
+    <mj-attributes>
+      <mj-all font-family="Arial, Helvetica, sans-serif" />
+      <mj-text font-size="15px" line-height="24px" color="#333d47" />
+      <mj-section background-color="#ffffff" />
+    </mj-attributes>
+    <mj-style inline="inline">
+      .code-box { letter-spacing: 8px; }
+    </mj-style>
+  </mj-head>
+  <mj-body background-color="#eef1f5">
+    <mj-section padding="24px 0 0 0" background-color="#eef1f5">
+      <mj-column>
+        <mj-text align="center" font-size="13px" color="#8a94a0" padding="0 24px 12px 24px">
+          Login JWT &mdash; Confirma&ccedil;&atilde;o de cadastro
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section border-radius="8px 8px 0 0" background-color="#1f3a5f" padding="28px 24px">
+      <mj-column>
+        <mj-text align="center" font-size="22px" font-weight="bold" color="#ffffff" padding="0">
+          Bem-vindo(a)!
+        </mj-text>
+        <mj-text align="center" font-size="14px" color="#c6d4e6" padding="8px 0 0 0">
+          Falta pouco para ativar a sua conta
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="32px 32px 8px 32px">
+      <mj-column>
+        <mj-text padding="0 0 16px 0">
+          Ol&aacute;,
+        </mj-text>
+        <mj-text padding="0 0 16px 0">
+          Recebemos um pedido de cadastro com este endere&ccedil;o de e-mail.
+          Use o c&oacute;digo abaixo para confirmar o seu cadastro:
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="0 32px">
+      <mj-column background-color="#f2f6fb" border="1px solid #d8e2ee" border-radius="8px" padding="20px 0">
+        <mj-text css-class="code-box" align="center" font-size="32px" font-weight="bold" color="#1f3a5f" padding="0">
+          {{code}}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="16px 32px 8px 32px">
+      <mj-column>
+        <mj-text align="center" font-size="13px" color="#8a94a0" padding="0">
+          Este c&oacute;digo expira em <strong>{{expiration}}</strong>.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section padding="8px 32px 32px 32px" border-radius="0 0 8px 8px">
+      <mj-column>
+        <mj-divider border-width="1px" border-color="#e4e9ef" padding="8px 0 20px 0" />
+        <mj-text font-size="13px" color="#8a94a0" padding="0">
+          Se voc&ecirc; n&atilde;o solicitou este cadastro, nenhuma a&ccedil;&atilde;o &eacute; necess&aacute;ria &mdash; basta ignorar este e-mail.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#eef1f5" padding="16px 24px 32px 24px">
+      <mj-column>
+        <mj-text align="center" font-size="12px" color="#a3adb8" padding="0">
+          Este &eacute; um e-mail autom&aacute;tico, n&atilde;o &eacute; necess&aacute;rio respond&ecirc;-lo.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
