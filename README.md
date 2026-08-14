@@ -4,6 +4,8 @@ API REST desenvolvida em **Spring Boot 4.1.0 + Java 25**, utilizando **JWT**, **
 
 A aplicação implementa:
 - Autenticação com JWT (access + refresh token)
+- Registro em duas etapas com código de verificação de 5 dígitos enviado por e-mail
+- Recuperação de senha ("esqueci minha senha") também com código por e-mail
 - Controle de acesso baseado em roles (`ADMIN` / `USER`)
 - CRUD completo de Produtos, Categorias e Fabricantes
 - Documentação automática via Swagger
@@ -17,6 +19,7 @@ A aplicação implementa:
 - Spring Security
 - JWT (jjwt 0.12.6)
 - Spring Data JPA
+- Spring Mail (`spring-boot-starter-mail`) — envio dos códigos de verificação
 - Bean Validation (Jakarta Validation / `spring-boot-starter-validation`)
 - PostgreSQL
 - Docker & Docker Compose
@@ -62,7 +65,7 @@ O projeto usa um arquivo `.env` (não versionado) para guardar as credenciais do
 cp .env.example .env
 ```
 
-Os valores padrão já funcionam para rodar localmente — não é necessário alterar nada para o primeiro teste. Se quiser, abra o `.env` e ajuste:
+Os valores padrão do banco e do JWT já funcionam para rodar localmente. As variáveis de e-mail (`MAIL_USERNAME` e `MAIL_PASSWORD`) **precisam ser preenchidas** para que o registro e a recuperação de senha funcionem, pois ambos enviam um código de verificação por e-mail:
 
 | Variável | Para que serve | Valor padrão |
 |---|---|---|
@@ -73,6 +76,13 @@ Os valores padrão já funcionam para rodar localmente — não é necessário a
 | `JWT_SECRET` | Chave usada para assinar os tokens JWT | valor de exemplo — troque em produção |
 | `JWT_ACCESS_EXPIRATION` | Validade do access token (ms) | `900000` (15 min) |
 | `JWT_REFRESH_EXPIRATION` | Validade do refresh token (ms) | `604800000` (7 dias) |
+| `MAIL_HOST` | Servidor SMTP para envio dos e-mails | `smtp.gmail.com` |
+| `MAIL_PORT` | Porta do servidor SMTP | `587` |
+| `MAIL_USERNAME` | E-mail remetente dos códigos | *(vazio — preencha)* |
+| `MAIL_PASSWORD` | Senha do e-mail remetente | *(vazio — preencha)* |
+| `VERIFICATION_CODE_EXPIRATION_SECONDS` | Validade dos códigos de verificação (segundos) | `60` (1 min) |
+
+> **Gmail:** não use a senha normal da conta em `MAIL_PASSWORD` — gere uma [senha de app](https://myaccount.google.com/apppasswords) (requer verificação em duas etapas ativada).
 
 ---
 
@@ -140,17 +150,32 @@ http://localhost:8080
 
 A aplicação **não vem com usuários pré-cadastrados** — o banco começa vazio e você precisa criar seus próprios usuários. Existem duas formas:
 
-### Opção A — criar via API (`/auth/register`)
+### Opção A — criar via API (registro em duas etapas)
 
-Todo usuário registrado por esse endpoint recebe automaticamente a role `USER`. Com a aplicação rodando, execute:
+O registro é feito em **duas etapas**, com confirmação por código enviado ao e-mail. O `username` **é o e-mail do usuário** (é para ele que os códigos são enviados), e todo usuário registrado recebe automaticamente a role `USER`.
+
+**Etapa 1 — solicitar o registro.** O usuário ainda não é criado: os dados ficam pendentes e um código de 5 dígitos é enviado para o e-mail informado:
 
 ```bash
 curl -X POST http://localhost:8080/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"username": "usuario", "password": "user123"}'
+  -d '{"username": "usuario@exemplo.com", "password": "user123"}'
 ```
 
-A resposta traz o `accessToken` e o `refreshToken` já prontos para uso — ou você pode logar depois em `/auth/login` com o mesmo usuário/senha.
+Resposta:
+```json
+{ "message": "Código de confirmação enviado para o e-mail informado." }
+```
+
+**Etapa 2 — confirmar o código.** O código expira em 1 minuto (configurável via `VERIFICATION_CODE_EXPIRATION_SECONDS`). Ao confirmar, o usuário é criado e a resposta já traz os tokens:
+
+```bash
+curl -X POST http://localhost:8080/auth/register/confirm \
+  -H "Content-Type: application/json" \
+  -d '{"email": "usuario@exemplo.com", "code": "04371"}'
+```
+
+Se o código expirar, basta repetir a etapa 1 — um novo pedido substitui o código anterior.
 
 ### Opção B — criar um usuário ADMIN diretamente no banco
 
@@ -183,6 +208,8 @@ Saia do psql com `\q`. Agora você pode logar com:
 
 Essas senhas são apenas para testes locais. Nunca use credenciais assim em produção.
 
+> Usuários inseridos direto no banco com username que não seja um e-mail (como `admin` e `user` acima) fazem login normalmente, mas **não conseguem usar a recuperação de senha**, que envia o código para o username.
+
 ---
 
 ## 7. Fazendo login e usando o token
@@ -210,7 +237,50 @@ curl -X POST http://localhost:8080/auth/refresh \
 
 ---
 
-## 8. Exemplo: cadastrando categoria, fabricante e produto
+## 8. Esqueci minha senha (recuperação por código)
+
+A recuperação de senha segue o mesmo padrão do registro: um código de 5 dígitos é enviado ao e-mail (o username) e expira em 1 minuto.
+
+**Etapa 1 — solicitar o código:**
+```bash
+curl -X POST http://localhost:8080/auth/forgot-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "usuario@exemplo.com"}'
+```
+
+Resposta:
+```json
+{ "message": "Código de recuperação enviado para o e-mail informado." }
+```
+
+**Etapa 2 — confirmar o código e definir a nova senha:**
+```bash
+curl -X POST http://localhost:8080/auth/reset-password \
+  -H "Content-Type: application/json" \
+  -d '{"email": "usuario@exemplo.com", "code": "04371", "newPassword": "novaSenha123"}'
+```
+
+Resposta:
+```json
+{ "message": "Senha redefinida com sucesso." }
+```
+
+O código é de uso único: após a troca de senha ele é descartado, e um novo pedido de recuperação invalida o código anterior.
+
+**Erros possíveis na confirmação (registro e recuperação):**
+
+| Situação | Status | Mensagem |
+|---|---|---|
+| Código vazio | `400` | "Código é obrigatório" |
+| Código com formato errado (não são 5 dígitos) | `400` | "Código deve conter exatamente 5 dígitos" |
+| Código não confere | `400` | "Código inválido. Verifique o código enviado para o seu e-mail." |
+| Código expirado (após 1 min) | `410` | "Código expirado. Solicite um novo código..." |
+| E-mail não cadastrado | `404` | "E-mail não cadastrado: ..." |
+| Falha no envio do e-mail (SMTP) | `503` | "Não foi possível enviar o e-mail com o código..." |
+
+---
+
+## 9. Exemplo: cadastrando categoria, fabricante e produto
 
 Categoria e fabricante são entidades próprias (tabelas `categorias` e `fabricantes`), e o produto se relaciona com ambas por chave estrangeira. Por isso, ao criar um produto, a categoria e o fabricante referenciados **precisam já existir** — a API responde `404` se o `id` informado não for encontrado.
 
@@ -256,7 +326,7 @@ A resposta traz a categoria e o fabricante já resolvidos (objeto completo, não
 
 ---
 
-## 9. Documentação interativa (Swagger)
+## 10. Documentação interativa (Swagger)
 
 Com a aplicação rodando, acesse no navegador:
 
@@ -272,9 +342,12 @@ Lá é possível ver e testar todos os endpoints (autenticação, produtos, cate
 
 | Método | Rota | Acesso |
 |---|---|---|
-| POST | `/auth/register` | Público |
+| POST | `/auth/register` | Público — etapa 1: envia o código de confirmação por e-mail |
+| POST | `/auth/register/confirm` | Público — etapa 2: confirma o código, cria o usuário e retorna os tokens |
 | POST | `/auth/login` | Público |
 | POST | `/auth/refresh` | Público |
+| POST | `/auth/forgot-password` | Público — envia o código de recuperação por e-mail |
+| POST | `/auth/reset-password` | Público — confirma o código e redefine a senha |
 | GET | `/produtos`, `/categorias`, `/fabricantes` | `USER` ou `ADMIN` |
 | POST/PUT/DELETE | `/produtos`, `/categorias`, `/fabricantes` | Apenas `ADMIN` |
 
@@ -304,9 +377,13 @@ O campo `errors` (mapa campo → mensagem) só aparece em erros de validação d
 |---|---|
 | Campo obrigatório vazio, fora do tamanho permitido ou em formato inválido (ex.: nome só com números, preço negativo) | `400` |
 | Corpo da requisição mal formado (JSON inválido) | `400` |
-| `categoriaId` ou `fabricanteId` não encontrado | `404` |
+| Código de verificação vazio, com formato errado ou inválido | `400` |
+| `categoriaId` ou `fabricanteId` não encontrado / e-mail não cadastrado | `404` |
 | Credenciais inválidas / token inválido ou expirado | `401` |
 | Usuário sem permissão para a ação | `403` |
+| Username (e-mail) já cadastrado no registro | `409` |
+| Código de verificação expirado | `410` |
+| Falha no envio do e-mail com o código (SMTP) | `503` |
 
 ---
 
@@ -318,6 +395,7 @@ O campo `errors` (mapa campo → mensagem) só aparece em erros de validação d
 - **`release version 25 not supported`**: o Maven está rodando com JDK 21 ou inferior. Defina `JAVA_HOME` para o JDK 25 antes de chamar `./mvnw`.
 - **`./mvnw: Permission denied`**: rode `chmod +x mvnw`.
 - **Porta 8080 já em uso**: pare o processo que está usando a porta ou rode com `./mvnw spring-boot:run -Dspring-boot.run.arguments=--server.port=8081`.
+- **`503` ao registrar ou recuperar senha ("Não foi possível enviar o e-mail...")**: `MAIL_USERNAME`/`MAIL_PASSWORD` não foram preenchidos no `.env`, ou a senha está incorreta. Para Gmail, use uma senha de app (veja o passo 2).
 
 ---
 
@@ -329,8 +407,11 @@ src/main/java/com/br/login_jwt/
 ├── controller/   # Endpoints REST (Auth, Produto, Categoria, Fabricantes)
 ├── DTO/          # Objetos de transferência de dados (Request/Response separados dos models JPA)
 ├── exception/    # Tratamento global de erros
-├── model/        # Entidades JPA (User, Produto, Categoria, Fabricantes)
+├── model/        # Entidades JPA (User, PendingRegistration, PasswordResetCode, Produto, ...)
 ├── repository/   # Repositórios Spring Data JPA
 ├── security/     # Filtro JWT, JwtService, UserDetailsService
-└── service/      # Regras de negócio
+├── service/      # Regras de negócio (Auth, PasswordReset, Email, Produto, ...)
+└── util/         # Utilitários (gerador de código de verificação, hash)
+
+src/main/resources/templates/email/   # Templates HTML dos e-mails de código de verificação
 ```
