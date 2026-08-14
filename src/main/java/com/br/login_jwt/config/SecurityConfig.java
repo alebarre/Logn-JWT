@@ -37,15 +37,15 @@ public class    SecurityConfig {
                         .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
 
                         // USER e ADMIN podem listar
-                        .requestMatchers(HttpMethod.GET, "/produtos/**", "/categorias/**", "/fabricantes/**")
+                        .requestMatchers(HttpMethod.GET, "/produtos/**", "/categorias/**", "/fabricantes/**", "/clientes/**")
                         .hasAnyRole("USER", "ADMIN")
 
                         // Apenas ADMIN pode criar, atualizar e deletar
-                        .requestMatchers(HttpMethod.POST, "/produtos/**", "/categorias/**", "/fabricantes/**")
+                        .requestMatchers(HttpMethod.POST, "/produtos/**", "/categorias/**", "/fabricantes/**", "/clientes/**")
                         .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/produtos/**", "/categorias/**", "/fabricantes/**")
+                        .requestMatchers(HttpMethod.PUT, "/produtos/**", "/categorias/**", "/fabricantes/**", "/clientes/**")
                         .hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/produtos/**", "/categorias/**", "/fabricantes/**")
+                        .requestMatchers(HttpMethod.DELETE, "/produtos/**", "/categorias/**", "/fabricantes/**", "/clientes/**")
                         .hasRole("ADMIN")
 
                         .anyRequest().authenticated()

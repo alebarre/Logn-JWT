@@ -76,6 +76,13 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(RecursoJaExisteException.class)
+    public ResponseEntity<ApiErrorDTO> handleRecursoJaExiste(RecursoJaExisteException ex,
+                                                              HttpServletRequest request) {
+        log.warn("Conflito de recurso em {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ApiErrorDTO> handleRecursoNaoEncontrado(RecursoNaoEncontradoException ex,
                                                                    HttpServletRequest request) {
