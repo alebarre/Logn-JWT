@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.mail.MailException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -38,6 +39,34 @@ public class GlobalExceptionHandler {
                                                            HttpServletRequest request) {
         log.warn("Token inválido em {}: {}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<ApiErrorDTO> handleInvalidVerificationCode(InvalidVerificationCodeException ex,
+                                                                      HttpServletRequest request) {
+        log.warn("Código de verificação inválido em {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(ExpiredVerificationCodeException.class)
+    public ResponseEntity<ApiErrorDTO> handleExpiredVerificationCode(ExpiredVerificationCodeException ex,
+                                                                      HttpServletRequest request) {
+        log.warn("Código de verificação expirado em {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.GONE, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorDTO> handleUserAlreadyExists(UserAlreadyExistsException ex,
+                                                                HttpServletRequest request) {
+        log.warn("Conflito de cadastro em {}: {}", request.getRequestURI(), ex.getMessage());
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<ApiErrorDTO> handleMailFailure(MailException ex, HttpServletRequest request) {
+        log.error("Falha ao enviar e-mail em {}", request.getRequestURI(), ex);
+        return buildResponse(HttpStatus.SERVICE_UNAVAILABLE,
+                "Não foi possível enviar o e-mail com o código. Tente novamente em instantes.", request);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)

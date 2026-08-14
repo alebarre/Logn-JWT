@@ -17,6 +17,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * O username é o e-mail do usuário (usado para login e recuperação de senha).
+     */
     @Column(nullable = false, unique = true)
     private String username;
 

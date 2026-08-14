@@ -6,6 +6,21 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+verification-code:
+  # Tempo de validade dos códigos de verificação (cadastro e recuperação de senha), em segundos
+  expiration-seconds: ${VERIFICATION_CODE_EXPIRATION_SECONDS:60}
 
 jwt:
   secret: ${JWT_SECRET:change-me-in-production-this-should-be-a-long-random-string}
