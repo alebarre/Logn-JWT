@@ -30,7 +30,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 .builder()
                 .username(user.getUsername())
                 .password(user.getPassword())
-                .authorities(user.getRoles().toArray(new String[0]))
+                .authorities(user.getRole().getName())
                 .build();
     }
 }

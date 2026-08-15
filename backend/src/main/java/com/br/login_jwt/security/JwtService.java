@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Set;
 
 @Service
 public class JwtService {
@@ -24,9 +25,14 @@ public class JwtService {
         return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateAccessToken(String username) {
+    /**
+     * Gera o access token com a claim "roles", permitindo que o frontend
+     * ajuste a interface conforme as permissões do usuário.
+     */
+    public String generateAccessToken(String username, Set<String> roles) {
         return Jwts.builder()
                 .subject(username)
+                .claim("roles", roles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + accessExpiration))
                 .signWith(getKey())

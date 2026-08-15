@@ -3,11 +3,13 @@
     <h1>Produtos</h1>
     <p>Gerencie os produtos cadastrados no sistema</p>
   </div>
-  <p-button label="Novo produto" (onClick)="openCreate()">
-    <ng-template #icon>
-      <fa-icon [icon]="faPlus" />
-    </ng-template>
-  </p-button>
+  @if (isAdmin()) {
+    <p-button label="Novo produto" (onClick)="openCreate()">
+      <ng-template #icon>
+        <fa-icon [icon]="faPlus" />
+      </ng-template>
+    </p-button>
+  }
 </div>
 
 <div class="content-card">
@@ -40,7 +42,9 @@
         <th class="hide-md">Fabricante</th>
         <th class="hide-md">Nº de série</th>
         <th pSortableColumn="preco">Preço <p-sortIcon field="preco" /></th>
-        <th style="width: 7rem">Ações</th>
+        @if (isAdmin()) {
+          <th style="width: 7rem">Ações</th>
+        }
       </tr>
     </ng-template>
 
@@ -51,26 +55,28 @@
         <td class="hide-md">{{ produto.fabricantes?.nome ?? '—' }}</td>
         <td class="hide-md">{{ produto.numSerie ?? '—' }}</td>
         <td>{{ produto.preco ?? 0 | currency: 'BRL' }}</td>
-        <td>
-          <div style="display: flex; gap: 0.35rem">
-            <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + produto.nome" (onClick)="openEdit(produto)">
-              <ng-template #icon>
-                <fa-icon [icon]="faPen" />
-              </ng-template>
-            </p-button>
-            <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + produto.nome" (onClick)="confirmDelete(produto)">
-              <ng-template #icon>
-                <fa-icon [icon]="faTrash" />
-              </ng-template>
-            </p-button>
-          </div>
-        </td>
+        @if (isAdmin()) {
+          <td>
+            <div style="display: flex; gap: 0.35rem">
+              <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + produto.nome" (onClick)="openEdit(produto)">
+                <ng-template #icon>
+                  <fa-icon [icon]="faPen" />
+                </ng-template>
+              </p-button>
+              <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + produto.nome" (onClick)="confirmDelete(produto)">
+                <ng-template #icon>
+                  <fa-icon [icon]="faTrash" />
+                </ng-template>
+              </p-button>
+            </div>
+          </td>
+        }
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="6">Nenhum produto encontrado.</td>
+        <td [attr.colspan]="isAdmin() ? 6 : 5">Nenhum produto encontrado.</td>
       </tr>
     </ng-template>
   </p-table>

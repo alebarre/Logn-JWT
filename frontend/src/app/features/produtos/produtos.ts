@@ -12,6 +12,7 @@ import { TableModule } from 'primeng/table';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
+import { AuthService } from '../../core/services/auth.service';
 import { CategoriasService, FabricantesService, ProdutosService } from '../../core/services/crud-api';
 import { NotificationService } from '../../core/services/notification.service';
 import { applyServerValidationErrors, controlErrorMessage } from '../../core/utils/form-errors';
@@ -40,6 +41,9 @@ export class Produtos implements OnInit {
   private readonly fabricantesService = inject(FabricantesService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly notification = inject(NotificationService);
+
+  /** Apenas ADMIN vê as ações de criar, editar e excluir. */
+  protected readonly isAdmin = inject(AuthService).isAdmin;
 
   protected readonly faPlus = faPlus;
   protected readonly faPen = faPen;

@@ -16,6 +16,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faLocationDot, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
+import { AuthService } from '../../core/services/auth.service';
 import { ClientesService } from '../../core/services/crud-api';
 import { ViaCepService } from '../../core/services/via-cep.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -63,6 +64,9 @@ export class Clientes implements OnInit {
   private readonly viaCep = inject(ViaCepService);
   private readonly confirmation = inject(ConfirmationService);
   private readonly notification = inject(NotificationService);
+
+  /** Apenas ADMIN vê as ações de criar, editar e excluir. */
+  protected readonly isAdmin = inject(AuthService).isAdmin;
 
   protected readonly faPlus = faPlus;
   protected readonly faPen = faPen;

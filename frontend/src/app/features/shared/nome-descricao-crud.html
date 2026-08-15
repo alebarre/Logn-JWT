@@ -3,11 +3,13 @@
     <h1>{{ title() }}</h1>
     <p>Gerencie {{ title().toLowerCase() }} cadastrad{{ feminine() ? 'a' : 'o' }}s no sistema</p>
   </div>
-  <p-button (onClick)="openCreate()" [label]="'Nov' + (feminine() ? 'a' : 'o') + ' ' + entityLabel().toLowerCase()">
-    <ng-template #icon>
-      <fa-icon [icon]="faPlus" />
-    </ng-template>
-  </p-button>
+  @if (isAdmin()) {
+    <p-button (onClick)="openCreate()" [label]="'Nov' + (feminine() ? 'a' : 'o') + ' ' + entityLabel().toLowerCase()">
+      <ng-template #icon>
+        <fa-icon [icon]="faPlus" />
+      </ng-template>
+    </p-button>
+  }
 </div>
 
 <div class="content-card">
@@ -37,7 +39,9 @@
       <tr>
         <th pSortableColumn="nome">Nome <p-sortIcon field="nome" /></th>
         <th class="hide-sm">Descrição</th>
-        <th style="width: 7rem">Ações</th>
+        @if (isAdmin()) {
+          <th style="width: 7rem">Ações</th>
+        }
       </tr>
     </ng-template>
 
@@ -45,26 +49,28 @@
       <tr>
         <td>{{ item.nome }}</td>
         <td class="hide-sm">{{ item.descricao || '—' }}</td>
-        <td>
-          <div style="display: flex; gap: 0.35rem">
-            <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + item.nome" (onClick)="openEdit(item)">
-              <ng-template #icon>
-                <fa-icon [icon]="faPen" />
-              </ng-template>
-            </p-button>
-            <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + item.nome" (onClick)="confirmDelete(item)">
-              <ng-template #icon>
-                <fa-icon [icon]="faTrash" />
-              </ng-template>
-            </p-button>
-          </div>
-        </td>
+        @if (isAdmin()) {
+          <td>
+            <div style="display: flex; gap: 0.35rem">
+              <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + item.nome" (onClick)="openEdit(item)">
+                <ng-template #icon>
+                  <fa-icon [icon]="faPen" />
+                </ng-template>
+              </p-button>
+              <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + item.nome" (onClick)="confirmDelete(item)">
+                <ng-template #icon>
+                  <fa-icon [icon]="faTrash" />
+                </ng-template>
+              </p-button>
+            </div>
+          </td>
+        }
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
       <tr>
-        <td colspan="3">Nenhum registro encontrado.</td>
+        <td [attr.colspan]="isAdmin() ? 3 : 2">Nenhum registro encontrado.</td>
       </tr>
     </ng-template>
   </p-table>
@@ -98,6 +104,6 @@
 
   <ng-template #footer>
     <p-button label="Cancelar" severity="secondary" outlined (onClick)="dialogVisible.set(false)" />
-    <p-button label="Salvar" type="submit" form="nomeDescricaoForm" [loading]="saving()" />
+    <p-button label="Salvar" [loading]="saving()" (onClick)="save()" />
   </ng-template>
 </p-dialog>

@@ -9,8 +9,10 @@ import com.br.login_jwt.exception.InvalidTokenException;
 import com.br.login_jwt.exception.InvalidVerificationCodeException;
 import com.br.login_jwt.exception.UserAlreadyExistsException;
 import com.br.login_jwt.model.PendingRegistration;
+import com.br.login_jwt.model.Role;
 import com.br.login_jwt.model.User;
 import com.br.login_jwt.repository.PendingRegistrationRepository;
+import com.br.login_jwt.repository.RoleRepository;
 import com.br.login_jwt.repository.UserRepository;
 import com.br.login_jwt.security.JwtService;
 import com.br.login_jwt.util.VerificationCodeGenerator;
@@ -30,6 +32,7 @@ import java.util.Set;
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PendingRegistrationRepository pendingRegistrationRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
@@ -39,11 +42,13 @@ public class AuthService {
     private long expirationSeconds;
 
     public AuthService(UserRepository userRepository,
+                       RoleRepository roleRepository,
                        PendingRegistrationRepository pendingRegistrationRepository,
                        JwtService jwtService,
                        PasswordEncoder passwordEncoder,
                        EmailService emailService) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.pendingRegistrationRepository = pendingRegistrationRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
@@ -106,12 +111,12 @@ public class AuthService {
         User user = new User();
         user.setUsername(pending.getEmail());
         user.setPassword(pending.getPassword());
-        user.setRoles(Set.of("ROLE_USER"));
+        user.setRole(findOrCreateRole("ROLE_USER"));
         userRepository.save(user);
 
         pendingRegistrationRepository.deleteByEmail(email);
 
-        String access = jwtService.generateAccessToken(user.getUsername());
+        String access = jwtService.generateAccessToken(user.getUsername(), Set.of(user.getRole().getName()));
         String refresh = jwtService.generateRefreshToken(user.getUsername());
 
         return new AuthResponseDTO(access, refresh);
@@ -125,7 +130,7 @@ public class AuthService {
             throw new InvalidCredentialsException("Usuário ou senha inválidos.");
         }
 
-        String access = jwtService.generateAccessToken(user.getUsername());
+        String access = jwtService.generateAccessToken(user.getUsername(), Set.of(user.getRole().getName()));
         String refresh = jwtService.generateRefreshToken(user.getUsername());
 
         return new AuthResponseDTO(access, refresh);
@@ -137,9 +142,22 @@ public class AuthService {
         }
 
         String username = jwtService.extractUsername(refreshToken);
-        String newAccess = jwtService.generateAccessToken(username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidTokenException("Usuário do token não existe mais."));
+        String newAccess = jwtService.generateAccessToken(username, Set.of(user.getRole().getName()));
         String newRefresh = jwtService.generateRefreshToken(username);
 
         return new AuthResponseDTO(newAccess, newRefresh);
+    }
+
+    /**
+     * Busca a role no catálogo; cria caso ainda não exista (ex: banco recém-criado).
+     */
+    private Role findOrCreateRole(String name) {
+        return roleRepository.findByName(name).orElseGet(() -> {
+            Role role = new Role();
+            role.setName(name);
+            return roleRepository.save(role);
+        });
     }
 }

@@ -3,10 +3,8 @@ package com.br.login_jwt.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.Set;
-
 /**
- * Entidade de usuário com roles para autorização.
+ * Entidade de usuário com role para autorização.
  */
 @Data
 @Entity
@@ -27,10 +25,9 @@ public class User {
     private String password;
 
     /**
-     * Conjunto de roles do usuário (ex: ROLE_USER, ROLE_ADMIN).
+     * Role do usuário (ex: ROLE_USER, ROLE_ADMIN). O FK role_id fica na tabela users.
      */
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private Set<String> roles;
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
+    @JoinColumn(name = "role_id", nullable = false)
+    private Role role;
 }

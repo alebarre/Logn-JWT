@@ -17,6 +17,9 @@ import type {
 interface JwtPayload {
   sub?: string;
   exp?: number;
+  /** Claim de roles: array ("roles") ou valor único ("role"), conforme o backend. */
+  roles?: string[] | string;
+  role?: string;
 }
 
 function decodeJwtPayload(token: string): JwtPayload {
@@ -51,6 +54,24 @@ export class AuthService {
     const token = this.accessToken();
     return token ? (decodeJwtPayload(token).sub ?? null) : null;
   });
+
+  /**
+   * Roles do usuário logado, normalizadas para array. Aceita tanto a claim
+   * "roles" (array ou string) quanto "role" (valor único), acompanhando o
+   * modelo do backend (users.role_id -> catálogo roles).
+   */
+  readonly roles = computed<string[]>(() => {
+    const token = this.accessToken();
+    if (!token) {
+      return [];
+    }
+    const payload = decodeJwtPayload(token);
+    const claim = payload.roles ?? payload.role ?? [];
+    return Array.isArray(claim) ? claim : [claim];
+  });
+
+  /** ADMIN pode criar, editar e excluir; USER apenas visualiza. */
+  readonly isAdmin = computed(() => this.roles().includes('ROLE_ADMIN'));
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http
