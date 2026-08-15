@@ -1,0 +1,47 @@
+<app-auth-card title="Bem-vindo de volta" subtitle="Entre com sua conta para continuar">
+  <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-field">
+      <label for="username">E-mail</label>
+      <input
+        pInputText
+        id="username"
+        type="email"
+        formControlName="username"
+        placeholder="voce@exemplo.com"
+        autocomplete="username"
+        [attr.aria-invalid]="!!errorOf('username')"
+      />
+      @if (errorOf('username'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="form-field">
+      <label for="password">Senha</label>
+      <p-password
+        inputId="password"
+        formControlName="password"
+        [feedback]="false"
+        [toggleMask]="true"
+        placeholder="Sua senha"
+        autocomplete="current-password"
+        [inputStyle]="{ width: '100%' }"
+        styleClass="w-full"
+      />
+      @if (errorOf('password'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="auth-links">
+      <span></span>
+      <a routerLink="/recuperar-senha">Esqueci minha senha</a>
+    </div>
+
+    <p-button type="submit" label="Entrar" [loading]="loading()" styleClass="w-full" />
+
+    <p class="auth-footer-link">
+      Ainda não tem conta? <a routerLink="/registro">Criar conta</a>
+    </p>
+  </form>
+</app-auth-card>

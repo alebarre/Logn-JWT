@@ -1,0 +1,103 @@
+<div class="page-header">
+  <div>
+    <h1>{{ title() }}</h1>
+    <p>Gerencie {{ title().toLowerCase() }} cadastrad{{ feminine() ? 'a' : 'o' }}s no sistema</p>
+  </div>
+  <p-button (onClick)="openCreate()" [label]="'Nov' + (feminine() ? 'a' : 'o') + ' ' + entityLabel().toLowerCase()">
+    <ng-template #icon>
+      <fa-icon [icon]="faPlus" />
+    </ng-template>
+  </p-button>
+</div>
+
+<div class="content-card">
+  <p-table
+    #dt
+    [value]="items()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [globalFilterFields]="['nome', 'descricao']"
+    dataKey="id"
+    [tableStyle]="{ 'min-width': '30rem' }"
+  >
+    <ng-template #caption>
+      <input
+        pInputText
+        type="search"
+        placeholder="Buscar..."
+        [style.max-width]="'18rem'"
+        [style.width]="'100%'"
+        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+      />
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="nome">Nome <p-sortIcon field="nome" /></th>
+        <th class="hide-sm">Descrição</th>
+        <th style="width: 7rem">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-item>
+      <tr>
+        <td>{{ item.nome }}</td>
+        <td class="hide-sm">{{ item.descricao || '—' }}</td>
+        <td>
+          <div style="display: flex; gap: 0.35rem">
+            <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + item.nome" (onClick)="openEdit(item)">
+              <ng-template #icon>
+                <fa-icon [icon]="faPen" />
+              </ng-template>
+            </p-button>
+            <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + item.nome" (onClick)="confirmDelete(item)">
+              <ng-template #icon>
+                <fa-icon [icon]="faTrash" />
+              </ng-template>
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="3">Nenhum registro encontrado.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="dialogTitle()"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(30rem, 94vw)' }"
+>
+  <form class="form-grid" [formGroup]="form" (ngSubmit)="save()" id="nomeDescricaoForm">
+    <div class="form-field col-12">
+      <label for="nome">Nome</label>
+      <input pInputText id="nome" formControlName="nome" [attr.aria-invalid]="!!errorOf('nome')" />
+      @if (errorOf('nome'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="form-field col-12">
+      <label for="descricao">Descrição</label>
+      <textarea pTextarea id="descricao" formControlName="descricao" rows="3"></textarea>
+      @if (errorOf('descricao'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" outlined (onClick)="dialogVisible.set(false)" />
+    <p-button label="Salvar" type="submit" form="nomeDescricaoForm" [loading]="saving()" />
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,70 @@
+<div class="shell">
+  <header class="topbar">
+    <button
+      class="icon-button menu-toggle"
+      type="button"
+      aria-label="Abrir menu"
+      (click)="drawerOpen.set(true)"
+    >
+      <fa-icon [icon]="faBars" />
+    </button>
+
+    <span class="brand">
+      <fa-icon [icon]="faShieldHalved" aria-hidden="true" />
+      <span class="brand-name">Login JWT</span>
+    </span>
+
+    <span class="spacer"></span>
+
+    <span class="user-email" [attr.title]="username()">{{ username() }}</span>
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Sair"
+      pTooltip="Sair"
+      tooltipPosition="bottom"
+      (click)="confirmLogout()"
+    >
+      <fa-icon [icon]="faRightFromBracket" />
+    </button>
+  </header>
+
+  <div class="body">
+    <nav class="sidenav" aria-label="Navegação principal">
+      <ul>
+        @for (item of menu; track item.route) {
+          <li>
+            <a [routerLink]="item.route" routerLinkActive="active">
+              <fa-icon [icon]="item.icon" aria-hidden="true" />
+              <span>{{ item.label }}</span>
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>
+
+<p-drawer
+  [visible]="drawerOpen()"
+  (visibleChange)="drawerOpen.set($event)"
+  header="Menu"
+  [style]="{ width: 'min(18rem, 85vw)' }"
+>
+  <nav class="drawer-nav" aria-label="Navegação principal">
+    <ul>
+      @for (item of menu; track item.route) {
+        <li>
+          <a [routerLink]="item.route" routerLinkActive="active" (click)="drawerOpen.set(false)">
+            <fa-icon [icon]="item.icon" aria-hidden="true" />
+            <span>{{ item.label }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+</p-drawer>

@@ -1,0 +1,161 @@
+<div class="page-header">
+  <div>
+    <h1>Produtos</h1>
+    <p>Gerencie os produtos cadastrados no sistema</p>
+  </div>
+  <p-button label="Novo produto" (onClick)="openCreate()">
+    <ng-template #icon>
+      <fa-icon [icon]="faPlus" />
+    </ng-template>
+  </p-button>
+</div>
+
+<div class="content-card">
+  <p-table
+    #dt
+    [value]="produtos()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [globalFilterFields]="['nome', 'numSerie', 'categoria.nome', 'fabricantes.nome']"
+    dataKey="id"
+    [tableStyle]="{ 'min-width': '38rem' }"
+  >
+    <ng-template #caption>
+      <input
+        pInputText
+        type="search"
+        placeholder="Buscar..."
+        [style.max-width]="'18rem'"
+        [style.width]="'100%'"
+        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+      />
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="nome">Nome <p-sortIcon field="nome" /></th>
+        <th class="hide-sm">Categoria</th>
+        <th class="hide-md">Fabricante</th>
+        <th class="hide-md">Nº de série</th>
+        <th pSortableColumn="preco">Preço <p-sortIcon field="preco" /></th>
+        <th style="width: 7rem">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-produto>
+      <tr>
+        <td>{{ produto.nome }}</td>
+        <td class="hide-sm">{{ produto.categoria?.nome ?? '—' }}</td>
+        <td class="hide-md">{{ produto.fabricantes?.nome ?? '—' }}</td>
+        <td class="hide-md">{{ produto.numSerie ?? '—' }}</td>
+        <td>{{ produto.preco ?? 0 | currency: 'BRL' }}</td>
+        <td>
+          <div style="display: flex; gap: 0.35rem">
+            <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + produto.nome" (onClick)="openEdit(produto)">
+              <ng-template #icon>
+                <fa-icon [icon]="faPen" />
+              </ng-template>
+            </p-button>
+            <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + produto.nome" (onClick)="confirmDelete(produto)">
+              <ng-template #icon>
+                <fa-icon [icon]="faTrash" />
+              </ng-template>
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6">Nenhum produto encontrado.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="editing() ? 'Editar produto' : 'Novo produto'"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(34rem, 94vw)' }"
+>
+  <form class="form-grid" [formGroup]="form" (ngSubmit)="save()" id="produtoForm">
+    <div class="form-field col-12">
+      <label for="nome">Nome</label>
+      <input pInputText id="nome" formControlName="nome" [attr.aria-invalid]="!!errorOf('nome')" />
+      @if (errorOf('nome'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="form-field col-6">
+      <label for="categoriaId">Categoria</label>
+      <p-select
+        inputId="categoriaId"
+        formControlName="categoriaId"
+        [options]="categorias()"
+        optionLabel="nome"
+        optionValue="id"
+        placeholder="Selecione"
+        [filter]="categorias().length > 8"
+        styleClass="w-full"
+        appendTo="body"
+      />
+      @if (errorOf('categoriaId'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="form-field col-6">
+      <label for="fabricanteId">Fabricante</label>
+      <p-select
+        inputId="fabricanteId"
+        formControlName="fabricanteId"
+        [options]="fabricantes()"
+        optionLabel="nome"
+        optionValue="id"
+        placeholder="Selecione"
+        [filter]="fabricantes().length > 8"
+        styleClass="w-full"
+        appendTo="body"
+      />
+      @if (errorOf('fabricanteId'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="form-field col-6">
+      <label for="numSerie">Nº de série</label>
+      <input pInputText id="numSerie" formControlName="numSerie" />
+      @if (errorOf('numSerie'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+
+    <div class="form-field col-6">
+      <label for="preco">Preço</label>
+      <p-inputnumber
+        inputId="preco"
+        formControlName="preco"
+        mode="currency"
+        currency="BRL"
+        locale="pt-BR"
+        [min]="0"
+        styleClass="w-full"
+      />
+      @if (errorOf('preco'); as message) {
+        <small class="field-error">{{ message }}</small>
+      }
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" outlined (onClick)="dialogVisible.set(false)" />
+    <p-button label="Salvar" [loading]="saving()" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

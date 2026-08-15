@@ -1,0 +1,73 @@
+<app-auth-card
+  title="Recuperar senha"
+  [subtitle]="step() === 'email' ? 'Informe seu e-mail para receber o código' : 'Digite o código e defina a nova senha'"
+>
+  @if (step() === 'email') {
+    <form class="auth-form" [formGroup]="emailForm" (ngSubmit)="requestCode()">
+      <div class="form-field">
+        <label for="email">E-mail</label>
+        <input
+          pInputText
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="voce@exemplo.com"
+          autocomplete="email"
+          [attr.aria-invalid]="!!emailError()"
+        />
+        @if (emailError(); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <p-button type="submit" label="Enviar código" [loading]="loading()" styleClass="w-full" />
+
+      <p class="auth-footer-link">
+        Lembrou a senha? <a routerLink="/login">Voltar para o login</a>
+      </p>
+    </form>
+  } @else {
+    <form class="auth-form" [formGroup]="resetForm" (ngSubmit)="resetPassword()">
+      <app-code-verification [email]="email" [disabled]="loading()" (resend)="resendCode()" />
+
+      <div class="form-field">
+        <label for="newPassword">Nova senha</label>
+        <p-password
+          inputId="newPassword"
+          formControlName="newPassword"
+          [toggleMask]="true"
+          placeholder="Mínimo de 6 caracteres"
+          autocomplete="new-password"
+          [inputStyle]="{ width: '100%' }"
+          styleClass="w-full"
+        />
+        @if (resetError('newPassword'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="confirmPassword">Confirmar nova senha</label>
+        <p-password
+          inputId="confirmPassword"
+          formControlName="confirmPassword"
+          [feedback]="false"
+          [toggleMask]="true"
+          placeholder="Repita a nova senha"
+          autocomplete="new-password"
+          [inputStyle]="{ width: '100%' }"
+          styleClass="w-full"
+        />
+        @if (resetError('confirmPassword'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <p-button type="submit" label="Redefinir senha" [loading]="loading()" styleClass="w-full" />
+
+      <p class="auth-footer-link">
+        <a routerLink="/login">Voltar para o login</a>
+      </p>
+    </form>
+  }
+</app-auth-card>

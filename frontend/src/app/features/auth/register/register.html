@@ -1,0 +1,56 @@
+<app-auth-card
+  title="Criar conta"
+  [subtitle]="step() === 'form' ? 'Informe seus dados para começar' : 'Confirme o código enviado por e-mail'"
+>
+  @if (step() === 'form') {
+    <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()">
+      <div class="form-field">
+        <label for="username">E-mail</label>
+        <input
+          pInputText
+          id="username"
+          type="email"
+          formControlName="username"
+          placeholder="voce@exemplo.com"
+          autocomplete="email"
+          [attr.aria-invalid]="!!errorOf('username')"
+        />
+        @if (errorOf('username'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <div class="form-field">
+        <label for="password">Senha</label>
+        <p-password
+          inputId="password"
+          formControlName="password"
+          [toggleMask]="true"
+          placeholder="Mínimo de 6 caracteres"
+          autocomplete="new-password"
+          [inputStyle]="{ width: '100%' }"
+          styleClass="w-full"
+        />
+        @if (errorOf('password'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <p-button type="submit" label="Criar conta" [loading]="loading()" styleClass="w-full" />
+
+      <p class="auth-footer-link">
+        Já tem conta? <a routerLink="/login">Entrar</a>
+      </p>
+    </form>
+  } @else {
+    <div class="auth-form">
+      <app-code-verification [email]="email" [disabled]="loading()" (resend)="resendCode()" />
+
+      <p-button label="Confirmar cadastro" [loading]="loading()" styleClass="w-full" (onClick)="confirm()" />
+
+      <p class="auth-footer-link">
+        <a routerLink="/login">Voltar para o login</a>
+      </p>
+    </div>
+  }
+</app-auth-card>

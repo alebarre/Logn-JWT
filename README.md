@@ -1,6 +1,6 @@
-# Login JWT API
+# Login JWT
 
-API REST desenvolvida em **Spring Boot 4.1.0 + Java 25**, utilizando **JWT**, **Spring Security**, **JPA**, **PostgreSQL**, **Swagger/OpenAPI** e **Docker**.
+Aplicação full stack organizada em monorepo: API REST em **Spring Boot 4.1.0 + Java 25** (`backend/`) e interface web em **Angular 20** (`frontend/`), utilizando **JWT**, **Spring Security**, **JPA**, **PostgreSQL**, **Swagger/OpenAPI** e **Docker**.
 
 A aplicação implementa:
 - Autenticação com JWT (access + refresh token)
@@ -14,6 +14,8 @@ A aplicação implementa:
 
 ## Tecnologias
 
+**Backend (`backend/`):**
+
 - Java 25
 - Spring Boot 4.1.0
 - Spring Security
@@ -25,6 +27,13 @@ A aplicação implementa:
 - Docker & Docker Compose
 - Swagger / OpenAPI
 - Lombok
+
+**Frontend (`frontend/`):**
+
+- Angular 20 (standalone components)
+- PrimeNG 20 (componentes de UI, tema Aura)
+- Font Awesome (ícones)
+- RxJS
 
 ---
 
@@ -43,8 +52,13 @@ Antes de começar, instale na sua máquina:
    docker --version
    docker compose version
    ```
+4. **[Node.js](https://nodejs.org/) 24 ou superior** (inclui o npm) — necessário apenas para rodar o frontend Angular. Confira com:
+   ```bash
+   node --version
+   npm --version
+   ```
 
-Não é necessário instalar o Maven: o projeto já traz o Maven Wrapper (`mvnw`), que baixa a versão correta automaticamente.
+Não é necessário instalar o Maven: o projeto já traz o Maven Wrapper (`mvnw`), que baixa a versão correta automaticamente. O Angular CLI também não precisa ser instalado globalmente — os comandos do frontend usam a versão local via `npm`.
 
 ---
 
@@ -55,13 +69,28 @@ git clone <URL-do-repositorio>
 cd Logn-JWT
 ```
 
+O repositório é organizado como um monorepo:
+
+```
+Logn-JWT/
+├── backend/    # API Spring Boot (Java 25)
+└── frontend/   # Aplicação Angular
+```
+
+Os comandos das próximas seções referentes ao back-end devem ser executados dentro da pasta `backend/`:
+
+```bash
+cd backend
+```
+
 ---
 
 ## 2. Configurar as variáveis de ambiente
 
-O projeto usa um arquivo `.env` (não versionado) para guardar as credenciais do banco e a chave do JWT. Um modelo já está pronto em `.env.example`. Basta copiá-lo:
+O projeto usa um arquivo `.env` (não versionado) para guardar as credenciais do banco e a chave do JWT. Um modelo já está pronto em `backend/.env.example`. Basta copiá-lo:
 
 ```bash
+cd backend
 cp .env.example .env
 ```
 
@@ -88,7 +117,7 @@ Os valores padrão do banco e do JWT já funcionam para rodar localmente. As var
 
 ## 3. Subir o banco de dados (PostgreSQL via Docker)
 
-Com o Docker Desktop aberto, na raiz do projeto rode:
+Com o Docker Desktop aberto, dentro da pasta `backend/` rode:
 
 ```bash
 docker compose up -d
@@ -146,7 +175,48 @@ http://localhost:8080
 
 ---
 
-## 6. Usuários para login
+## 6. Rodar o frontend (Angular)
+
+Com a API no ar (passo 5), abra outro terminal e rode:
+
+```bash
+cd frontend
+npm install   # apenas na primeira vez
+npm start
+```
+
+O `npm start` sobe o servidor de desenvolvimento em:
+
+```
+http://localhost:4200
+```
+
+As chamadas à API (`/auth`, `/clientes`, `/categorias`, `/fabricantes`, `/produtos`) são redirecionadas automaticamente para `http://localhost:8080` pelo proxy de desenvolvimento ([frontend/proxy.conf.json](frontend/proxy.conf.json)) — não é preciso configurar CORS nem URLs.
+
+Outros comandos úteis (sempre dentro de `frontend/`):
+
+```bash
+npm run build   # build de produção (saída em dist/frontend)
+npm test        # testes unitários (Karma/Jasmine)
+```
+
+> **Produção:** as URLs de API do frontend são relativas — sirva o app no mesmo domínio do backend ou atrás de um reverse proxy que roteie os caminhos de API listados acima.
+
+### Funcionalidades do frontend
+
+- **Login** com redirecionamento para a rota original (`returnUrl`)
+- **Registro em 2 etapas**: dados → código de 5 dígitos por e-mail (countdown de 60s + reenvio) → tokens e entrada direta na aplicação
+- **Recuperação de senha em 2 etapas**: e-mail → código + nova senha
+- **Sessão JWT**: access token no header via interceptor; em 401 o refresh token renova a sessão automaticamente (uma única vez, compartilhado entre chamadas concorrentes) antes de deslogar
+- **CRUDs**: clientes (endereços com preenchimento automático via ViaCEP), categorias, fabricantes e produtos
+- **UX**: toasts para avisos/respostas (PrimeNG Toast) e modais de confirmação para ações destrutivas (excluir, sair); formulários exibem os erros de validação do backend campo a campo (`ApiErrorDTO.errors`)
+- **Responsivo**: sidebar fixa em desktop, drawer no mobile/tablet; tabelas ocultam colunas secundárias em telas estreitas (`hide-sm`/`hide-md`)
+
+> **Observação sobre roles:** o access token do backend não carrega claim de roles (apenas `sub`/`exp`), então a UI não esconde ações restritas a ADMIN — um usuário USER que tentar criar, editar ou excluir recebe o 403 do backend com a mensagem exibida em toast. Se o backend passar a expor as roles (claim no JWT ou endpoint `/auth/me`), dá para ocultar os botões de escrita para quem é apenas USER.
+
+---
+
+## 7. Usuários para login
 
 A aplicação **não vem com usuários pré-cadastrados** — o banco começa vazio e você precisa criar seus próprios usuários. Existem duas formas:
 
@@ -212,7 +282,7 @@ Essas senhas são apenas para testes locais. Nunca use credenciais assim em prod
 
 ---
 
-## 7. Fazendo login e usando o token
+## 8. Fazendo login e usando o token
 
 Login:
 ```bash
@@ -237,7 +307,7 @@ curl -X POST http://localhost:8080/auth/refresh \
 
 ---
 
-## 8. Esqueci minha senha (recuperação por código)
+## 9. Esqueci minha senha (recuperação por código)
 
 A recuperação de senha segue o mesmo padrão do registro: um código de 5 dígitos é enviado ao e-mail (o username) e expira em 1 minuto.
 
@@ -280,7 +350,7 @@ O código é de uso único: após a troca de senha ele é descartado, e um novo 
 
 ---
 
-## 9. Exemplo: cadastrando categoria, fabricante e produto
+## 10. Exemplo: cadastrando categoria, fabricante e produto
 
 Categoria e fabricante são entidades próprias (tabelas `categorias` e `fabricantes`), e o produto se relaciona com ambas por chave estrangeira. Por isso, ao criar um produto, a categoria e o fabricante referenciados **precisam já existir** — a API responde `404` se o `id` informado não for encontrado.
 
@@ -326,7 +396,7 @@ A resposta traz a categoria e o fabricante já resolvidos (objeto completo, não
 
 ---
 
-## 10. Documentação interativa (Swagger)
+## 11. Documentação interativa (Swagger)
 
 Com a aplicação rodando, acesse no navegador:
 
@@ -402,7 +472,7 @@ O campo `errors` (mapa campo → mensagem) só aparece em erros de validação d
 ## Estrutura do Projeto
 
 ```
-src/main/java/com/br/login_jwt/
+backend/src/main/java/com/br/login_jwt/
 ├── config/       # Configuração de segurança e Swagger
 ├── controller/   # Endpoints REST (Auth, Produto, Categoria, Fabricantes)
 ├── DTO/          # Objetos de transferência de dados (Request/Response separados dos models JPA)
@@ -413,5 +483,11 @@ src/main/java/com/br/login_jwt/
 ├── service/      # Regras de negócio (Auth, PasswordReset, Email, Produto, ...)
 └── util/         # Utilitários (gerador de código de verificação, hash)
 
-src/main/resources/templates/email/   # Templates HTML dos e-mails de código de verificação
+backend/src/main/resources/templates/email/   # Templates HTML dos e-mails de código de verificação
+
+frontend/src/app/
+├── core/         # Infraestrutura: config, guards de rota, interceptors HTTP (JWT), models, services, utils
+└── features/     # Telas por domínio: auth, clientes, categorias, fabricantes, produtos, shell, shared
+
+frontend/proxy.conf.json              # Proxy do dev server: redireciona as chamadas de API para localhost:8080
 ```

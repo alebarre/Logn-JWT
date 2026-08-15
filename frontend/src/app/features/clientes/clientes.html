@@ -1,0 +1,225 @@
+<div class="page-header">
+  <div>
+    <h1>Clientes</h1>
+    <p>Gerencie os clientes e seus endereços</p>
+  </div>
+  <p-button label="Novo cliente" (onClick)="openCreate()">
+    <ng-template #icon>
+      <fa-icon [icon]="faPlus" />
+    </ng-template>
+  </p-button>
+</div>
+
+<div class="content-card">
+  <p-table
+    #dt
+    [value]="clientes()"
+    [loading]="loading()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [globalFilterFields]="['nome', 'sobrenome', 'email', 'telefone']"
+    dataKey="id"
+    [tableStyle]="{ 'min-width': '36rem' }"
+  >
+    <ng-template #caption>
+      <input
+        pInputText
+        type="search"
+        placeholder="Buscar..."
+        [style.max-width]="'18rem'"
+        [style.width]="'100%'"
+        (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+      />
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="nome">Nome <p-sortIcon field="nome" /></th>
+        <th>E-mail</th>
+        <th class="hide-sm">Telefone</th>
+        <th class="hide-md">Cidade</th>
+        <th class="hide-md" style="width: 6.5rem">Endereços</th>
+        <th style="width: 7rem">Ações</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-cliente>
+      <tr>
+        <td>{{ cliente.nome }} {{ cliente.sobrenome }}</td>
+        <td style="overflow-wrap: anywhere">{{ cliente.email }}</td>
+        <td class="hide-sm">{{ cliente.telefone || '—' }}</td>
+        <td class="hide-md">{{ cidadePrincipal(cliente) }}</td>
+        <td class="hide-md">
+          <span style="display: inline-flex; align-items: center; gap: 0.35rem">
+            <fa-icon [icon]="faLocationDot" aria-hidden="true" />
+            {{ cliente.enderecos.length }}
+          </span>
+        </td>
+        <td>
+          <div style="display: flex; gap: 0.35rem">
+            <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + cliente.nome" (onClick)="openEdit(cliente)">
+              <ng-template #icon>
+                <fa-icon [icon]="faPen" />
+              </ng-template>
+            </p-button>
+            <p-button text rounded severity="danger" [ariaLabel]="'Excluir ' + cliente.nome" (onClick)="confirmDelete(cliente)">
+              <ng-template #icon>
+                <fa-icon [icon]="faTrash" />
+              </ng-template>
+            </p-button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6">Nenhum cliente encontrado.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [header]="editing() ? 'Editar cliente' : 'Novo cliente'"
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(44rem, 94vw)' }"
+  [contentStyle]="{ 'max-height': '75vh' }"
+>
+  <form [formGroup]="form" (ngSubmit)="save()" id="clienteForm">
+    <div class="form-grid">
+      <div class="form-field col-6">
+        <label for="nome">Nome</label>
+        <input pInputText id="nome" formControlName="nome" [attr.aria-invalid]="!!errorOf('nome')" />
+        @if (errorOf('nome'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <div class="form-field col-6">
+        <label for="sobrenome">Sobrenome</label>
+        <input pInputText id="sobrenome" formControlName="sobrenome" [attr.aria-invalid]="!!errorOf('sobrenome')" />
+        @if (errorOf('sobrenome'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <div class="form-field col-6">
+        <label for="email">E-mail</label>
+        <input pInputText id="email" type="email" formControlName="email" [attr.aria-invalid]="!!errorOf('email')" />
+        @if (errorOf('email'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+
+      <div class="form-field col-6">
+        <label for="telefone">Telefone</label>
+        <input pInputText id="telefone" formControlName="telefone" placeholder="(11) 99999-9999" />
+        @if (errorOf('telefone'); as message) {
+          <small class="field-error">{{ message }}</small>
+        }
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin: 1.25rem 0 0.75rem">
+      <h2 style="margin: 0; font-size: 1rem; font-weight: 600">Endereços</h2>
+      <p-button label="Adicionar endereço" size="small" outlined (onClick)="addEndereco()">
+        <ng-template #icon>
+          <fa-icon [icon]="faPlus" />
+        </ng-template>
+      </p-button>
+    </div>
+
+    <div formArrayName="enderecos">
+      @for (endereco of enderecos.controls; track endereco; let i = $index) {
+        <div class="endereco-card" [formGroupName]="i">
+          <div class="endereco-card-header">
+            <h3>Endereço {{ i + 1 }}</h3>
+            <p-button
+              text
+              rounded
+              severity="danger"
+              size="small"
+              ariaLabel="Remover endereço"
+              pTooltip="Remover endereço"
+              (onClick)="removeEndereco(i)"
+            >
+              <ng-template #icon>
+                <fa-icon [icon]="faTrash" />
+              </ng-template>
+            </p-button>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-field col-4">
+              <label [for]="'cep-' + i">CEP</label>
+              <input
+                pInputText
+                [id]="'cep-' + i"
+                formControlName="cep"
+                placeholder="00000-000"
+                maxlength="9"
+                inputmode="numeric"
+                (blur)="lookupCep(i)"
+              />
+              @if (cepLoading() === i) {
+                <small style="color: var(--app-text-muted)">Consultando CEP...</small>
+              }
+              @if (enderecoErrorOf(i, 'cep'); as message) {
+                <small class="field-error">{{ message }}</small>
+              }
+            </div>
+
+            <div class="form-field col-8">
+              <label [for]="'logradouro-' + i">Logradouro</label>
+              <input pInputText [id]="'logradouro-' + i" formControlName="logradouro" />
+              @if (enderecoErrorOf(i, 'logradouro'); as message) {
+                <small class="field-error">{{ message }}</small>
+              }
+            </div>
+
+            <div class="form-field col-3">
+              <label [for]="'numero-' + i">Número</label>
+              <input pInputText [id]="'numero-' + i" formControlName="numero" />
+            </div>
+
+            <div class="form-field col-4">
+              <label [for]="'complemento-' + i">Complemento</label>
+              <input pInputText [id]="'complemento-' + i" formControlName="complemento" />
+            </div>
+
+            <div class="form-field col-3">
+              <label [for]="'bairro-' + i">Bairro</label>
+              <input pInputText [id]="'bairro-' + i" formControlName="bairro" />
+            </div>
+
+            <div class="form-field col-8">
+              <label [for]="'localidade-' + i">Cidade</label>
+              <input pInputText [id]="'localidade-' + i" formControlName="localidade" />
+              @if (enderecoErrorOf(i, 'localidade'); as message) {
+                <small class="field-error">{{ message }}</small>
+              }
+            </div>
+
+            <div class="form-field col-4">
+              <label [for]="'uf-' + i">UF</label>
+              <input pInputText [id]="'uf-' + i" formControlName="uf" maxlength="2" style="text-transform: uppercase" />
+              @if (enderecoErrorOf(i, 'uf'); as message) {
+                <small class="field-error">{{ message }}</small>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </form>
+
+  <ng-template #footer>
+    <p-button label="Cancelar" severity="secondary" outlined (onClick)="dialogVisible.set(false)" />
+    <p-button label="Salvar" [loading]="saving()" (onClick)="save()" />
+  </ng-template>
+</p-dialog>

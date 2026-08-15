@@ -1,0 +1,179 @@
+/* Estilos globais da aplicação */
+
+:root {
+  --app-font: 'Inter', 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', sans-serif;
+  --app-bg: #f4f6fa;
+  --app-surface: #ffffff;
+  --app-border: #e2e8f0;
+  --app-text: #1e293b;
+  --app-text-muted: #64748b;
+  --app-primary: #10b981;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  font-family: var(--app-font);
+  background-color: var(--app-bg);
+  color: var(--app-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Título de página padrão da área logada */
+.page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+
+  h1 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 600;
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+    color: var(--app-text-muted);
+    font-size: 0.9rem;
+  }
+}
+
+/* Cartão padrão de conteúdo */
+.content-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+/* Tabelas roláveis em telas estreitas */
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* Mensagem de erro sob os campos de formulário */
+.field-error {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--p-red-500, #ef4444);
+}
+
+/* Campo de formulário padrão */
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  > label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--app-text);
+  }
+}
+
+/* Grid de formulário responsivo */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+
+  .col-12 { grid-column: span 12; }
+  .col-6 { grid-column: span 6; }
+  .col-4 { grid-column: span 4; }
+  .col-3 { grid-column: span 3; }
+  .col-8 { grid-column: span 8; }
+
+  @media (max-width: 640px) {
+    .col-6,
+    .col-4,
+    .col-3,
+    .col-8 {
+      grid-column: span 12;
+    }
+  }
+}
+
+.w-full {
+  width: 100%;
+}
+
+/* Formulários das telas de autenticação */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  .p-inputtext,
+  .p-password {
+    width: 100%;
+  }
+}
+
+.auth-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+
+  a {
+    color: var(--p-primary-600, #059669);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.auth-footer-link {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--app-text-muted);
+
+  a {
+    color: var(--p-primary-600, #059669);
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+/* Esconde colunas secundárias de tabela em telas pequenas */
+@media (max-width: 767px) {
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hide-md {
+    display: none !important;
+  }
+}
