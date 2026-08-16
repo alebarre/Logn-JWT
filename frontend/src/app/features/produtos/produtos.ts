@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize, forkJoin } from 'rxjs';
 import { ConfirmationService } from 'primeng/api';
@@ -10,7 +10,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule } from 'primeng/table';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 import { AuthService } from '../../core/services/auth.service';
 import { CategoriasService, FabricantesService, ProdutosService } from '../../core/services/crud-api';
@@ -23,6 +23,7 @@ import type { Categoria, Fabricante, Produto } from '../../core/models/api.model
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CurrencyPipe,
+    DatePipe,
     ReactiveFormsModule,
     ButtonModule,
     DialogModule,
@@ -42,12 +43,13 @@ export class Produtos implements OnInit {
   private readonly confirmation = inject(ConfirmationService);
   private readonly notification = inject(NotificationService);
 
-  /** Apenas ADMIN vê as ações de criar, editar e excluir. */
+  /** Apenas ADMIN vê as ações de criar, editar e excluir; visualizar é para todos. */
   protected readonly isAdmin = inject(AuthService).isAdmin;
 
   protected readonly faPlus = faPlus;
   protected readonly faPen = faPen;
   protected readonly faTrash = faTrash;
+  protected readonly faEye = faEye;
 
   protected readonly produtos = signal<Produto[]>([]);
   protected readonly categorias = signal<Categoria[]>([]);
@@ -56,6 +58,8 @@ export class Produtos implements OnInit {
   protected readonly saving = signal(false);
   protected readonly dialogVisible = signal(false);
   protected readonly editing = signal<Produto | null>(null);
+  /** Produto exibido no dialog de detalhes; null = dialog fechado. */
+  protected readonly viewing = signal<Produto | null>(null);
 
   protected readonly form = this.fb.group({
     nome: ['', [Validators.required, Validators.maxLength(100)]],
@@ -89,6 +93,10 @@ export class Produtos implements OnInit {
         },
         error: (error: unknown) => this.notification.apiError(error),
       });
+  }
+
+  protected openView(produto: Produto): void {
+    this.viewing.set(produto);
   }
 
   protected openCreate(): void {

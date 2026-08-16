@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import {
   FormArray,
   FormGroup,
@@ -14,7 +15,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faLocationDot, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faLocationDot, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 import { AuthService } from '../../core/services/auth.service';
 import { ClientesService } from '../../core/services/crud-api';
@@ -27,6 +28,7 @@ import type { Cliente, Endereco } from '../../core/models/api.models';
   selector: 'app-clientes',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    DatePipe,
     ReactiveFormsModule,
     ButtonModule,
     DialogModule,
@@ -65,12 +67,13 @@ export class Clientes implements OnInit {
   private readonly confirmation = inject(ConfirmationService);
   private readonly notification = inject(NotificationService);
 
-  /** Apenas ADMIN vê as ações de criar, editar e excluir. */
+  /** Apenas ADMIN vê as ações de criar, editar e excluir; visualizar é para todos. */
   protected readonly isAdmin = inject(AuthService).isAdmin;
 
   protected readonly faPlus = faPlus;
   protected readonly faPen = faPen;
   protected readonly faTrash = faTrash;
+  protected readonly faEye = faEye;
   protected readonly faLocationDot = faLocationDot;
 
   protected readonly clientes = signal<Cliente[]>([]);
@@ -78,6 +81,8 @@ export class Clientes implements OnInit {
   protected readonly saving = signal(false);
   protected readonly dialogVisible = signal(false);
   protected readonly editing = signal<Cliente | null>(null);
+  /** Cliente exibido no dialog de detalhes; null = dialog fechado. */
+  protected readonly viewing = signal<Cliente | null>(null);
   protected readonly cepLoading = signal<number | null>(null);
 
   protected readonly form = this.fb.group({
@@ -118,6 +123,17 @@ export class Clientes implements OnInit {
   protected cidadePrincipal(cliente: Cliente): string {
     const endereco = cliente.enderecos[0];
     return endereco ? `${endereco.localidade}/${endereco.uf}` : '—';
+  }
+
+  protected openView(cliente: Cliente): void {
+    this.viewing.set(cliente);
+  }
+
+  /** Linha resumida do endereço para o card de detalhes. */
+  protected enderecoResumo(endereco: Endereco): string {
+    const numero = endereco.numero ? `, ${endereco.numero}` : '';
+    const complemento = endereco.complemento ? ` - ${endereco.complemento}` : '';
+    return `${endereco.logradouro}${numero}${complemento}`;
   }
 
   protected openCreate(): void {

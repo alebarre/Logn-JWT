@@ -59,12 +59,22 @@ body {
   }
 }
 
-/* Cartão padrão de conteúdo */
+/* Cartão padrão de conteúdo. Tabelas largas rolam dentro dele, nunca na página. */
 .content-card {
   background: var(--app-surface);
   border: 1px solid var(--app-border);
   border-radius: 12px;
   padding: 1.25rem;
+  overflow-x: auto;
+}
+
+/* Em telas pequenas as colunas secundárias somem (hide-sm/hide-md) e a tabela
+   cabe na largura do aparelho; a partir de 768px garantimos largura mínima
+   para as colunas extras respirarem, com scroll contido no .content-card. */
+@media (min-width: 768px) {
+  .content-card .p-datatable table {
+    min-width: 38rem;
+  }
 }
 
 /* Tabelas roláveis em telas estreitas */
@@ -117,6 +127,64 @@ body {
 
 .w-full {
   width: 100%;
+}
+
+/* Card de visualização (dialog de detalhes, somente leitura) */
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+
+  > span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--app-text-muted);
+  }
+
+  > strong {
+    font-weight: 500;
+    overflow-wrap: anywhere;
+  }
+}
+
+.detail-full {
+  grid-column: 1 / -1;
+}
+
+.detail-section-title {
+  margin: 1.25rem 0 0.75rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Bloco de detalhe agrupado (ex.: um endereço do cliente) */
+.detail-block {
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 1rem;
+
+  & + & {
+    margin-top: 0.75rem;
+  }
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
 }
 
 /* Formulários das telas de autenticação */

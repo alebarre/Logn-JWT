@@ -1,12 +1,20 @@
+import { ENV } from './env.generated';
+
 /**
- * Configurações da aplicação.
- * As URLs de API são relativas: em desenvolvimento o proxy (proxy.conf.json)
- * encaminha para o backend em localhost:8080; em produção espera-se o app
- * servido sob o mesmo domínio do backend (ou atrás de um reverse proxy).
+ * Prefixo de todas as chamadas à API. Evita colisão entre as rotas do SPA
+ * (ex: /clientes aberto via F5) e os endpoints do backend: em dev o proxy
+ * (proxy.conf.js) remove o prefixo e encaminha para o BACKEND_URL do .env; em
+ * produção um reverse proxy deve rotear /api/* para o backend da mesma forma.
+ *
+ * Os valores vêm do .env único na raiz do projeto, via env.generated.ts
+ * (gerado por scripts/generate-env.js antes de start/build/test).
  */
+export const API_BASE = ENV.apiBase;
+
+/** Configurações da aplicação. */
 export const APP_CONFIG = {
   /** Validade (em segundos) dos códigos de verificação enviados por e-mail. */
-  verificationCodeTtlSeconds: 60,
+  verificationCodeTtlSeconds: ENV.verificationCodeTtlSeconds,
   /** Tamanho do código de verificação. */
-  verificationCodeLength: 5,
+  verificationCodeLength: ENV.verificationCodeLength,
 } as const;

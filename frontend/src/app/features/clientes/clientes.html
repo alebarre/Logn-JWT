@@ -22,7 +22,6 @@
     [rowsPerPageOptions]="[10, 25, 50]"
     [globalFilterFields]="['nome', 'sobrenome', 'email', 'telefone']"
     dataKey="id"
-    [tableStyle]="{ 'min-width': '36rem' }"
   >
     <ng-template #caption>
       <input
@@ -42,9 +41,7 @@
         <th class="hide-sm">Telefone</th>
         <th class="hide-md">Cidade</th>
         <th class="hide-md" style="width: 6.5rem">Endereços</th>
-        @if (isAdmin()) {
-          <th style="width: 7rem">Ações</th>
-        }
+        <th [style.width]="isAdmin() ? '10rem' : '5rem'">Ações</th>
       </tr>
     </ng-template>
 
@@ -60,9 +57,14 @@
             {{ cliente.enderecos.length }}
           </span>
         </td>
-        @if (isAdmin()) {
-          <td>
-            <div style="display: flex; gap: 0.35rem">
+        <td>
+          <div style="display: flex; gap: 0.35rem">
+            <p-button text rounded severity="info" [ariaLabel]="'Visualizar ' + cliente.nome" (onClick)="openView(cliente)">
+              <ng-template #icon>
+                <fa-icon [icon]="faEye" />
+              </ng-template>
+            </p-button>
+            @if (isAdmin()) {
               <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + cliente.nome" (onClick)="openEdit(cliente)">
                 <ng-template #icon>
                   <fa-icon [icon]="faPen" />
@@ -73,19 +75,80 @@
                   <fa-icon [icon]="faTrash" />
                 </ng-template>
               </p-button>
-            </div>
-          </td>
-        }
+            }
+          </div>
+        </td>
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
       <tr>
-        <td [attr.colspan]="isAdmin() ? 6 : 5">Nenhum cliente encontrado.</td>
+        <td colspan="6">Nenhum cliente encontrado.</td>
       </tr>
     </ng-template>
   </p-table>
 </div>
+
+<p-dialog
+  header="Detalhes do cliente"
+  [visible]="!!viewing()"
+  (visibleChange)="!$event && viewing.set(null)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(38rem, 94vw)' }"
+  [contentStyle]="{ 'max-height': '75vh' }"
+>
+  @if (viewing(); as cliente) {
+    <div class="detail-grid">
+      <div class="detail-item">
+        <span>Nome</span>
+        <strong>{{ cliente.nome }} {{ cliente.sobrenome }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>E-mail</span>
+        <strong>{{ cliente.email }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>Telefone</span>
+        <strong>{{ cliente.telefone || '—' }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>Data de cadastro</span>
+        <strong>{{ cliente.dataCadastro ? (cliente.dataCadastro | date: 'dd/MM/yyyy HH:mm') : '—' }}</strong>
+      </div>
+    </div>
+
+    <h2 class="detail-section-title">Endereços ({{ cliente.enderecos.length }})</h2>
+    @for (endereco of cliente.enderecos; track endereco.id ?? $index) {
+      <div class="detail-block">
+        <h3>Endereço {{ $index + 1 }}</h3>
+        <div class="detail-grid">
+          <div class="detail-item detail-full">
+            <span>Logradouro</span>
+            <strong>{{ enderecoResumo(endereco) }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Bairro</span>
+            <strong>{{ endereco.bairro || '—' }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>CEP</span>
+            <strong>{{ endereco.cep }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Cidade/UF</span>
+            <strong>{{ endereco.localidade }}/{{ endereco.uf }}</strong>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <p style="color: var(--app-text-muted); margin: 0">Nenhum endereço cadastrado.</p>
+    }
+  }
+  <ng-template #footer>
+    <p-button label="Fechar" severity="secondary" outlined (onClick)="viewing.set(null)" />
+  </ng-template>
+</p-dialog>
 
 <p-dialog
   [header]="editing() ? 'Editar cliente' : 'Novo cliente'"

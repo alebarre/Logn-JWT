@@ -87,10 +87,9 @@ cd backend
 
 ## 2. Configurar as variáveis de ambiente
 
-O projeto usa um arquivo `.env` (não versionado) para guardar as credenciais do banco e a chave do JWT. Um modelo já está pronto em `backend/.env.example`. Basta copiá-lo:
+O projeto usa um **único arquivo `.env` na raiz do repositório** (não versionado) para guardar todas as variáveis de ambiente do back-end **e** do front-end. Um modelo já está pronto em `.env.example`, na raiz. Basta copiá-lo (a partir da raiz do projeto):
 
 ```bash
-cd backend
 cp .env.example .env
 ```
 
@@ -109,7 +108,12 @@ Os valores padrão do banco e do JWT já funcionam para rodar localmente. As var
 | `MAIL_PORT` | Porta do servidor SMTP | `587` |
 | `MAIL_USERNAME` | E-mail remetente dos códigos | *(vazio — preencha)* |
 | `MAIL_PASSWORD` | Senha do e-mail remetente | *(vazio — preencha)* |
-| `VERIFICATION_CODE_EXPIRATION_SECONDS` | Validade dos códigos de verificação (segundos) | `60` (1 min) |
+| `VERIFICATION_CODE_EXPIRATION_SECONDS` | Validade dos códigos de verificação (segundos) — usado pelo back e pelo front | `60` (1 min) |
+| `VERIFICATION_CODE_LENGTH` | Tamanho do código de verificação — usado pelo front | `5` |
+| `API_BASE` | Prefixo das chamadas à API no front-end | `/api` |
+| `BACKEND_URL` | URL do back-end usada pelo proxy de dev do front (`ng serve`) | `http://localhost:8080` |
+
+> **Front-end:** os valores do `.env` chegam ao Angular pelo script `frontend/scripts/generate-env.js`, que gera `src/app/core/config/env.generated.ts` automaticamente antes de `npm start`/`npm run build`/`npm test` (e após `npm install`). O proxy de dev (`frontend/proxy.conf.js`) também lê o `.env` da raiz.
 
 > **Gmail:** não use a senha normal da conta em `MAIL_PASSWORD` — gere uma [senha de app](https://myaccount.google.com/apppasswords) (requer verificação em duas etapas ativada).
 
@@ -117,7 +121,7 @@ Os valores padrão do banco e do JWT já funcionam para rodar localmente. As var
 
 ## 3. Subir o banco de dados (PostgreSQL via Docker)
 
-Com o Docker Desktop aberto, dentro da pasta `backend/` rode:
+Com o Docker Desktop aberto, na **raiz do projeto** (onde ficam o `docker-compose.yml` e o `.env`) rode:
 
 ```bash
 docker compose up -d

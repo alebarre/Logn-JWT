@@ -2,6 +2,7 @@ import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/comm
 import { inject } from '@angular/core';
 import { catchError, finalize, Observable, shareReplay, switchMap, throwError } from 'rxjs';
 
+import { API_BASE } from '../config/app-config';
 import { AuthService } from '../services/auth.service';
 import { TokenStorageService } from '../services/token-storage.service';
 import type { AuthResponse } from '../models/api.models';
@@ -21,7 +22,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
   const tokenStorage = inject(TokenStorageService);
 
-  const isAuthEndpoint = req.url.startsWith('/auth/');
+  const isAuthEndpoint = req.url.startsWith(`${API_BASE}/auth/`);
   const isExternal = req.url.startsWith('http');
   const accessToken = tokenStorage.getAccessToken();
 

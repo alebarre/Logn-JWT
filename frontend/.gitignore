@@ -41,3 +41,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Gerado a partir do .env na raiz (scripts/generate-env.js)
+/src/app/core/config/env.generated.ts

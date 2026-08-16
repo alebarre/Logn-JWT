@@ -7,6 +7,9 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.MapPropertySource;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +22,7 @@ public class LoginJwtApplication {
 
         app.addInitializers((ApplicationContextInitializer<ConfigurableApplicationContext>) ctx -> {
             Dotenv dotenv = Dotenv.configure()
-                    .directory("./")
+                    .directory(findEnvDirectory())
                     .ignoreIfMalformed()
                     .ignoreIfMissing()
                     .load();
@@ -32,5 +35,18 @@ public class LoginJwtApplication {
         });
 
         app.run(args);
+    }
+
+    /**
+     * O .env único do projeto fica na raiz do repositório; a aplicação pode ser
+     * iniciada tanto da raiz quanto de backend/, então sobe na árvore de
+     * diretórios até encontrá-lo.
+     */
+    private static String findEnvDirectory() {
+        Path dir = Paths.get(System.getProperty("user.dir")).toAbsolutePath();
+        while (dir != null && !Files.exists(dir.resolve(".env"))) {
+            dir = dir.getParent();
+        }
+        return dir != null ? dir.toString() : "./";
     }
 }

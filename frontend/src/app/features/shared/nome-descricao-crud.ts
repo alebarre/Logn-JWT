@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TableModule } from 'primeng/table';
 import { TextareaModule } from 'primeng/textarea';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faMagnifyingGlass, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faMagnifyingGlass, faPen, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -58,12 +58,13 @@ export class NomeDescricaoCrud implements OnInit {
   private readonly confirmation = inject(ConfirmationService);
   private readonly notification = inject(NotificationService);
 
-  /** Apenas ADMIN vê as ações de criar, editar e excluir. */
+  /** Apenas ADMIN vê as ações de criar, editar e excluir; visualizar é para todos. */
   protected readonly isAdmin = inject(AuthService).isAdmin;
 
   protected readonly faPlus = faPlus;
   protected readonly faPen = faPen;
   protected readonly faTrash = faTrash;
+  protected readonly faEye = faEye;
   protected readonly faMagnifyingGlass = faMagnifyingGlass;
 
   protected readonly items = signal<NomeDescricaoItem[]>([]);
@@ -71,6 +72,8 @@ export class NomeDescricaoCrud implements OnInit {
   protected readonly saving = signal(false);
   protected readonly dialogVisible = signal(false);
   protected readonly editing = signal<NomeDescricaoItem | null>(null);
+  /** Item exibido no dialog de detalhes; null = dialog fechado. */
+  protected readonly viewing = signal<NomeDescricaoItem | null>(null);
 
   protected readonly dialogTitle = computed(() =>
     this.editing()
@@ -100,6 +103,10 @@ export class NomeDescricaoCrud implements OnInit {
         next: (items) => this.items.set(items),
         error: (error: unknown) => this.notification.apiError(error),
       });
+  }
+
+  protected openView(item: NomeDescricaoItem): void {
+    this.viewing.set(item);
   }
 
   protected openCreate(): void {

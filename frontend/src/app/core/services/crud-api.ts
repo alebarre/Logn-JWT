@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { API_BASE } from '../config/app-config';
 import type {
   Categoria,
   CategoriaRequest,
@@ -37,20 +38,20 @@ abstract class CrudApi<T, TRequest> {
 
 @Injectable({ providedIn: 'root' })
 export class ClientesService extends CrudApi<Cliente, ClienteRequest> {
-  protected readonly baseUrl = '/clientes';
+  protected readonly baseUrl = `${API_BASE}/clientes`;
 }
 
 @Injectable({ providedIn: 'root' })
 export class CategoriasService extends CrudApi<Categoria, CategoriaRequest> {
-  protected readonly baseUrl = '/categorias';
+  protected readonly baseUrl = `${API_BASE}/categorias`;
 }
 
 @Injectable({ providedIn: 'root' })
 export class FabricantesService extends CrudApi<Fabricante, FabricanteRequest> {
-  protected readonly baseUrl = '/fabricantes';
+  protected readonly baseUrl = `${API_BASE}/fabricantes`;
 }
 
 @Injectable({ providedIn: 'root' })
 export class ProdutosService extends CrudApi<Produto, ProdutoRequest> {
-  protected readonly baseUrl = '/produtos';
+  protected readonly baseUrl = `${API_BASE}/produtos`;
 }

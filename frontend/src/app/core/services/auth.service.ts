@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 
+import { API_BASE } from '../config/app-config';
 import { TokenStorageService } from './token-storage.service';
 import type {
   AuthResponse,
@@ -75,31 +76,31 @@ export class AuthService {
 
   login(request: LoginRequest): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>('/auth/login', request)
+      .post<AuthResponse>(`${API_BASE}/auth/login`, request)
       .pipe(tap((tokens) => this.storeSession(tokens)));
   }
 
   register(request: RegisterRequest): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>('/auth/register', request);
+    return this.http.post<MessageResponse>(`${API_BASE}/auth/register`, request);
   }
 
   confirmRegister(request: ConfirmRegisterRequest): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>('/auth/register/confirm', request)
+      .post<AuthResponse>(`${API_BASE}/auth/register/confirm`, request)
       .pipe(tap((tokens) => this.storeSession(tokens)));
   }
 
   forgotPassword(request: ForgotPasswordRequest): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>('/auth/forgot-password', request);
+    return this.http.post<MessageResponse>(`${API_BASE}/auth/forgot-password`, request);
   }
 
   resetPassword(request: ResetPasswordRequest): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>('/auth/reset-password', request);
+    return this.http.post<MessageResponse>(`${API_BASE}/auth/reset-password`, request);
   }
 
   refresh(): Observable<AuthResponse> {
     return this.http
-      .post<AuthResponse>('/auth/refresh', { refreshToken: this.tokenStorage.getRefreshToken() })
+      .post<AuthResponse>(`${API_BASE}/auth/refresh`, { refreshToken: this.tokenStorage.getRefreshToken() })
       .pipe(tap((tokens) => this.storeSession(tokens)));
   }
 

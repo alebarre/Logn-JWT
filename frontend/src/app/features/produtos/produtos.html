@@ -22,7 +22,6 @@
     [rowsPerPageOptions]="[10, 25, 50]"
     [globalFilterFields]="['nome', 'numSerie', 'categoria.nome', 'fabricantes.nome']"
     dataKey="id"
-    [tableStyle]="{ 'min-width': '38rem' }"
   >
     <ng-template #caption>
       <input
@@ -42,9 +41,7 @@
         <th class="hide-md">Fabricante</th>
         <th class="hide-md">Nº de série</th>
         <th pSortableColumn="preco">Preço <p-sortIcon field="preco" /></th>
-        @if (isAdmin()) {
-          <th style="width: 7rem">Ações</th>
-        }
+        <th [style.width]="isAdmin() ? '10rem' : '5rem'">Ações</th>
       </tr>
     </ng-template>
 
@@ -55,9 +52,14 @@
         <td class="hide-md">{{ produto.fabricantes?.nome ?? '—' }}</td>
         <td class="hide-md">{{ produto.numSerie ?? '—' }}</td>
         <td>{{ produto.preco ?? 0 | currency: 'BRL' }}</td>
-        @if (isAdmin()) {
-          <td>
-            <div style="display: flex; gap: 0.35rem">
+        <td>
+          <div style="display: flex; gap: 0.35rem">
+            <p-button text rounded severity="info" [ariaLabel]="'Visualizar ' + produto.nome" (onClick)="openView(produto)">
+              <ng-template #icon>
+                <fa-icon [icon]="faEye" />
+              </ng-template>
+            </p-button>
+            @if (isAdmin()) {
               <p-button text rounded severity="secondary" [ariaLabel]="'Editar ' + produto.nome" (onClick)="openEdit(produto)">
                 <ng-template #icon>
                   <fa-icon [icon]="faPen" />
@@ -68,19 +70,60 @@
                   <fa-icon [icon]="faTrash" />
                 </ng-template>
               </p-button>
-            </div>
-          </td>
-        }
+            }
+          </div>
+        </td>
       </tr>
     </ng-template>
 
     <ng-template #emptymessage>
       <tr>
-        <td [attr.colspan]="isAdmin() ? 6 : 5">Nenhum produto encontrado.</td>
+        <td colspan="6">Nenhum produto encontrado.</td>
       </tr>
     </ng-template>
   </p-table>
 </div>
+
+<p-dialog
+  header="Detalhes do produto"
+  [visible]="!!viewing()"
+  (visibleChange)="!$event && viewing.set(null)"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(34rem, 94vw)' }"
+>
+  @if (viewing(); as produto) {
+    <div class="detail-grid">
+      <div class="detail-item detail-full">
+        <span>Nome</span>
+        <strong>{{ produto.nome }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>Categoria</span>
+        <strong>{{ produto.categoria?.nome ?? '—' }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>Fabricante</span>
+        <strong>{{ produto.fabricantes?.nome ?? '—' }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>Nº de série</span>
+        <strong>{{ produto.numSerie || '—' }}</strong>
+      </div>
+      <div class="detail-item">
+        <span>Preço</span>
+        <strong>{{ produto.preco ?? 0 | currency: 'BRL' }}</strong>
+      </div>
+      <div class="detail-item detail-full">
+        <span>Data de cadastro</span>
+        <strong>{{ produto.dataCadastro ? (produto.dataCadastro | date: 'dd/MM/yyyy HH:mm') : '—' }}</strong>
+      </div>
+    </div>
+  }
+  <ng-template #footer>
+    <p-button label="Fechar" severity="secondary" outlined (onClick)="viewing.set(null)" />
+  </ng-template>
+</p-dialog>
 
 <p-dialog
   [header]="editing() ? 'Editar produto' : 'Novo produto'"
