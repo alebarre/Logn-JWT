@@ -6,8 +6,8 @@ A aplicação implementa:
 - Autenticação com JWT (access + refresh token)
 - Registro em duas etapas com código de verificação de 5 dígitos enviado por e-mail
 - Recuperação de senha ("esqueci minha senha") também com código por e-mail
-- Controle de acesso baseado em roles (`ADMIN` / `USER`)
-- CRUD completo de Produtos, Categorias e Fabricantes
+- Controle de acesso baseado em roles (`ADMIN` / `USER`) — o access token carrega a claim `roles`, usada pelo frontend para esconder ações de escrita de quem não é ADMIN
+- CRUD completo de Clientes (com endereços via ViaCEP), Produtos, Categorias e Fabricantes
 - Documentação automática via Swagger
 
 ---
@@ -73,8 +73,10 @@ O repositório é organizado como um monorepo:
 
 ```
 Logn-JWT/
-├── backend/    # API Spring Boot (Java 25)
-└── frontend/   # Aplicação Angular
+├── backend/            # API Spring Boot (Java 25)
+├── frontend/           # Aplicação Angular
+├── docker-compose.yml  # Banco PostgreSQL (rodar da raiz)
+└── .env.example        # Modelo do .env único (backend + frontend)
 ```
 
 Os comandos das próximas seções referentes ao back-end devem ser executados dentro da pasta `backend/`:
@@ -139,7 +141,7 @@ Você deve ver o container `login_jwt_postgres` com status `Up`.
 
 ## 4. Buildar a aplicação
 
-No Linux/macOS:
+Dentro de `backend/`, no Linux/macOS:
 ```bash
 ./mvnw clean package
 ```
@@ -148,6 +150,8 @@ No Windows:
 ```bash
 mvnw.cmd clean package
 ```
+
+> Se o `java` padrão da máquina não for o JDK 25 (confira com `java -version`), aponte o `JAVA_HOME` para ele antes de chamar o Maven: `JAVA_HOME=/caminho/para/jdk-25 ./mvnw clean package`. Sem isso o build falha com `release version 25 not supported`.
 
 Se aparecer erro de permissão (`Permission denied`) no Linux/macOS, rode `chmod +x mvnw` e tente de novo.
 
@@ -170,6 +174,8 @@ JAVA_HOME=/caminho/para/jdk-25 ./mvnw spring-boot:run
 ```
 
 > Substitua `/caminho/para/jdk-25` pelo caminho do JDK 25 instalado (ex.: `/home/$USER/.jdks/openjdk-25.0.2`). O projeto foi compilado para Java 25 e **não roda em versões anteriores do JRE**.
+
+> **Onde rodar:** tanto da raiz quanto de `backend/` funciona — na inicialização a aplicação sobe na árvore de diretórios até encontrar o `.env` da raiz, então não é preciso copiá-lo para `backend/`.
 
 Quando aparecer a mensagem `Started LoginJwtApplication` no terminal, a API está no ar em:
 
@@ -195,7 +201,7 @@ O `npm start` sobe o servidor de desenvolvimento em:
 http://localhost:4200
 ```
 
-As chamadas à API (`/auth`, `/clientes`, `/categorias`, `/fabricantes`, `/produtos`) são redirecionadas automaticamente para `http://localhost:8080` pelo proxy de desenvolvimento ([frontend/proxy.conf.json](frontend/proxy.conf.json)) — não é preciso configurar CORS nem URLs.
+Todas as chamadas à API saem do frontend com o prefixo `API_BASE` (padrão `/api` — ex.: `/api/auth/login`, `/api/produtos`). Em desenvolvimento, o proxy ([frontend/proxy.conf.js](frontend/proxy.conf.js)) remove o prefixo e encaminha para o `BACKEND_URL` do `.env` (padrão `http://localhost:8080`) — não é preciso configurar CORS nem URLs. O prefixo evita colisão entre as rotas do SPA (ex.: `/clientes` aberto via F5) e os endpoints do backend.
 
 Outros comandos úteis (sempre dentro de `frontend/`):
 
@@ -204,7 +210,9 @@ npm run build   # build de produção (saída em dist/frontend)
 npm test        # testes unitários (Karma/Jasmine)
 ```
 
-> **Produção:** as URLs de API do frontend são relativas — sirva o app no mesmo domínio do backend ou atrás de um reverse proxy que roteie os caminhos de API listados acima.
+> **Produção:** as URLs de API do frontend são relativas e prefixadas com `API_BASE` — sirva o app atrás de um reverse proxy que roteie `/api/*` para o backend removendo o prefixo (o mesmo que o proxy de dev faz).
+>
+> **Nota sobre o build do frontend:** o `npm install` e os scripts `start`/`build`/`watch`/`test` executam automaticamente `scripts/generate-env.js`, que lê o `.env` da raiz e gera `src/app/core/config/env.generated.ts` (arquivo não versionado). Se o `.env` não existir, os valores padrão são usados. Alterou o `.env`? Basta rodar o script de novo (ou qualquer `npm start`/`npm run build`).
 
 ### Funcionalidades do frontend
 
@@ -213,10 +221,10 @@ npm test        # testes unitários (Karma/Jasmine)
 - **Recuperação de senha em 2 etapas**: e-mail → código + nova senha
 - **Sessão JWT**: access token no header via interceptor; em 401 o refresh token renova a sessão automaticamente (uma única vez, compartilhado entre chamadas concorrentes) antes de deslogar
 - **CRUDs**: clientes (endereços com preenchimento automático via ViaCEP), categorias, fabricantes e produtos
+- **Visualização em cards**: todas as listagens têm um botão de visualizar (olho) que abre um dialog somente leitura com os detalhes do registro em formato de card — inclusive os endereços do cliente, agrupados em blocos
+- **Controle por role na UI**: o frontend decodifica a claim `roles` do access token — os botões de criar, editar e excluir só aparecem para ADMIN; usuários USER veem apenas a listagem e a visualização
 - **UX**: toasts para avisos/respostas (PrimeNG Toast) e modais de confirmação para ações destrutivas (excluir, sair); formulários exibem os erros de validação do backend campo a campo (`ApiErrorDTO.errors`)
-- **Responsivo**: sidebar fixa em desktop, drawer no mobile/tablet; tabelas ocultam colunas secundárias em telas estreitas (`hide-sm`/`hide-md`)
-
-> **Observação sobre roles:** o access token do backend não carrega claim de roles (apenas `sub`/`exp`), então a UI não esconde ações restritas a ADMIN — um usuário USER que tentar criar, editar ou excluir recebe o 403 do backend com a mensagem exibida em toast. Se o backend passar a expor as roles (claim no JWT ou endpoint `/auth/me`), dá para ocultar os botões de escrita para quem é apenas USER.
+- **Responsivo**: sidebar fixa em desktop, drawer no mobile/tablet; tabelas ocultam colunas secundárias em telas estreitas (`hide-sm`/`hide-md`) e rolam horizontalmente dentro do card de conteúdo quando necessário
 
 ---
 
@@ -253,7 +261,7 @@ Se o código expirar, basta repetir a etapa 1 — um novo pedido substitui o có
 
 ### Opção B — criar um usuário ADMIN diretamente no banco
 
-Como o registro público só cria usuários `USER`, para ter um usuário `ADMIN` de teste é preciso inserir direto no banco (ou registrar um usuário e depois promovê-lo). Rode a aplicação pelo menos uma vez antes (passo 5), para que as tabelas `users` e `user_roles` sejam criadas automaticamente.
+Como o registro público só cria usuários `USER`, para ter um usuário `ADMIN` de teste é preciso inserir direto no banco (ou registrar um usuário e depois promovê-lo). As roles ficam em uma tabela-catálogo `roles`, referenciada pela coluna `role_id` da tabela `users`. Rode a aplicação pelo menos uma vez antes (passo 5), para que as tabelas sejam criadas automaticamente.
 
 Abra um terminal dentro do container do Postgres:
 
@@ -261,16 +269,17 @@ Abra um terminal dentro do container do Postgres:
 docker exec -it login_jwt_postgres psql -U login_jwt_user -d login_jwt_db
 ```
 
-E cole o script abaixo, que cria um usuário `admin` (senha `admin123`) e um usuário `user` (senha `user123`), já com as senhas criptografadas em BCrypt:
+E cole o script abaixo, que garante as roles no catálogo e cria um usuário `admin` (senha `admin123`) e um usuário `user` (senha `user123`), já com as senhas criptografadas em BCrypt:
 
 ```sql
-INSERT INTO users (username, password) VALUES
-  ('admin', '$2a$10$J6W7ZmZ7H9bV36NXYGFGXuAM672e0Cn3Jte26.QWqpocpwsc1MqUS'),
-  ('user',  '$2a$10$Q35qcYhG7OZMGilOfwB6OecE0cYmQ/AhRseIfTsdruVdoKN.BjF1i');
+INSERT INTO roles (name) VALUES ('ROLE_ADMIN'), ('ROLE_USER')
+  ON CONFLICT (name) DO NOTHING;
 
-INSERT INTO user_roles (user_id, role) VALUES
-  ((SELECT id FROM users WHERE username = 'admin'), 'ROLE_ADMIN'),
-  ((SELECT id FROM users WHERE username = 'user'),  'ROLE_USER');
+INSERT INTO users (username, password, role_id) VALUES
+  ('admin', '$2a$10$J6W7ZmZ7H9bV36NXYGFGXuAM672e0Cn3Jte26.QWqpocpwsc1MqUS',
+   (SELECT id FROM roles WHERE name = 'ROLE_ADMIN')),
+  ('user',  '$2a$10$Q35qcYhG7OZMGilOfwB6OecE0cYmQ/AhRseIfTsdruVdoKN.BjF1i',
+   (SELECT id FROM roles WHERE name = 'ROLE_USER'));
 ```
 
 Saia do psql com `\q`. Agora você pode logar com:
@@ -283,6 +292,13 @@ Saia do psql com `\q`. Agora você pode logar com:
 Essas senhas são apenas para testes locais. Nunca use credenciais assim em produção.
 
 > Usuários inseridos direto no banco com username que não seja um e-mail (como `admin` e `user` acima) fazem login normalmente, mas **não conseguem usar a recuperação de senha**, que envia o código para o username.
+
+> **Promover um usuário já registrado a ADMIN:**
+> ```sql
+> UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'ROLE_ADMIN')
+>  WHERE username = 'usuario@exemplo.com';
+> ```
+> Como a role vai embutida no access token, é preciso deslogar e logar de novo para a promoção valer na interface.
 
 ---
 
@@ -422,8 +438,8 @@ Lá é possível ver e testar todos os endpoints (autenticação, produtos, cate
 | POST | `/auth/refresh` | Público |
 | POST | `/auth/forgot-password` | Público — envia o código de recuperação por e-mail |
 | POST | `/auth/reset-password` | Público — confirma o código e redefine a senha |
-| GET | `/produtos`, `/categorias`, `/fabricantes` | `USER` ou `ADMIN` |
-| POST/PUT/DELETE | `/produtos`, `/categorias`, `/fabricantes` | Apenas `ADMIN` |
+| GET | `/produtos`, `/categorias`, `/fabricantes`, `/clientes` | `USER` ou `ADMIN` |
+| POST/PUT/DELETE | `/produtos`, `/categorias`, `/fabricantes`, `/clientes` | Apenas `ADMIN` |
 
 ---
 
@@ -481,7 +497,7 @@ backend/src/main/java/com/br/login_jwt/
 ├── controller/   # Endpoints REST (Auth, Produto, Categoria, Fabricantes)
 ├── DTO/          # Objetos de transferência de dados (Request/Response separados dos models JPA)
 ├── exception/    # Tratamento global de erros
-├── model/        # Entidades JPA (User, PendingRegistration, PasswordResetCode, Produto, ...)
+├── model/        # Entidades JPA (User, Role, Cliente, Endereco, PendingRegistration, Produto, ...)
 ├── repository/   # Repositórios Spring Data JPA
 ├── security/     # Filtro JWT, JwtService, UserDetailsService
 ├── service/      # Regras de negócio (Auth, PasswordReset, Email, Produto, ...)
@@ -491,7 +507,13 @@ backend/src/main/resources/templates/email/   # Templates HTML dos e-mails de c�
 
 frontend/src/app/
 ├── core/         # Infraestrutura: config, guards de rota, interceptors HTTP (JWT), models, services, utils
+│   └── config/env.generated.ts   # Gerado a partir do .env da raiz (não versionado)
 └── features/     # Telas por domínio: auth, clientes, categorias, fabricantes, produtos, shell, shared
 
-frontend/proxy.conf.json              # Proxy do dev server: redireciona as chamadas de API para localhost:8080
+frontend/scripts/env.js               # Leitura do .env único da raiz (sem dependência de dotenv)
+frontend/scripts/generate-env.js      # Gera env.generated.ts (roda antes de start/build/test e após npm install)
+frontend/proxy.conf.js                # Proxy do dev server: remove o prefixo API_BASE e encaminha ao BACKEND_URL
+
+docker-compose.yml                    # PostgreSQL (na raiz, junto do .env)
+.env.example                          # Modelo do .env único usado por backend e frontend
 ```
