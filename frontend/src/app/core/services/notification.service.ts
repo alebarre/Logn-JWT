@@ -12,19 +12,19 @@ import type { ApiError } from '../models/api.models';
 export class NotificationService {
   private readonly messageService = inject(MessageService);
 
-  success(detail: string, summary = 'Sucesso'): void {
+  success(detail: string, summary = 'LOGIN - JWT    ||   Sucesso'): void {
     this.messageService.add({ severity: 'success', summary, detail, life: 4000 });
   }
 
-  info(detail: string, summary = 'Informação'): void {
+  info(detail: string, summary = 'LOGIN - JWT    ||   Informação'): void {
     this.messageService.add({ severity: 'info', summary, detail, life: 4000 });
   }
 
-  warn(detail: string, summary = 'Atenção'): void {
+  warn(detail: string, summary = 'LOGIN - JWT    ||   Atenção'): void {
     this.messageService.add({ severity: 'warn', summary, detail, life: 5000 });
   }
 
-  error(detail: string, summary = 'Erro'): void {
+  error(detail: string, summary = 'LOGIN - JWT    ||   Erro'): void {
     this.messageService.add({ severity: 'error', summary, detail, life: 6000 });
   }
 
